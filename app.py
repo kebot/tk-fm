@@ -7,6 +7,7 @@ import doubanfm
 import os
 import json
 from cache import store
+import config
 
 TMP_PATH = '/tmp/morelisten/'
 if not os.path.isdir(TMP_PATH):
@@ -14,6 +15,7 @@ if not os.path.isdir(TMP_PATH):
 
 urls = (
     r"/", "More",
+    r"/(\d+)", "More",
     r"/notify", "Notify",
     r"/speaker", "Speaker",
     r"/user/login", "Login",
@@ -25,6 +27,9 @@ render = render_jinja(
         'template',
         encoding='utf-8',
     )
+
+render._lookup.globals.update(
+                channels=config.channelInfo)
 
 
 class More(object):
@@ -39,8 +44,8 @@ class More(object):
             self.cookies = web.storage()
         self.client = doubanfm.Client(**self.cookies)
 
-    def GET(self):
-        songs = self.client._get_song_list()
+    def GET(self, channel=0):
+        songs = self.client._get_song_list(channel)
         return render.index(cookies=self.cookies, songs=songs)
 
 

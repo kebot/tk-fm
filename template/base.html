@@ -11,9 +11,40 @@
       <link href="/static/stylesheets/ie.css" media="screen, projection" rel="stylesheet" type="text/css" />
     <![endif]-->
     <script src="/static/js/jquery-1.7.1.min.js" type="text/javascript"></script>
+    <script src="/static/js/bootstrap-dropdown.js" type="text/javascript"></script>
+
     {% block header_extra %}{% endblock %}
   </head>
 <body>
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+      <div class="container">
+        <a href="http://kebot.me/" class="brand">Turkey-Radio</a>
+        <ul class="nav">
+            <li><a href="/0">{{channels.personal}}</a></li>
+            {%for item in channels.public%}
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle"
+                    data-toggle="dropdown">{{item.cate}}<b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    {% for channel in item.channels %}
+                    <li>
+                        <a href="/{{channel.channel_id}}">{{channel.name}}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {%endfor%}
+            <li class="driver-vertical"></li>
+        </ul>
+        <ul class="nav pull-right">
+            <li><a href="/speaker">Speaker <i class="icon-volume-up
+                        icon-white"></i></a></li>
+        </ul>
+      </div>
+  </div>
+</div>
+    <hr />
     {% block main %}{% endblock %}
 </body>
 </html>
