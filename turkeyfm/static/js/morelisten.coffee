@@ -59,7 +59,16 @@ jQuery ->
 
 
   btn_trash.click ->
-    $.post current_sid
+    $.post "/song/#{current_song_info.sid}/bye",{} ,(r)->
+      console.log r
+      updateSongList(r)
+
+
+  btn_skip.click ->
+    $.post "/song/#{current_song_info.sid}/skip",{} ,(r)->
+      console.log r
+      updateSongList(r)
+
 
   updateCurrentSong()
   updateSongListForChannel()

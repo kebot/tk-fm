@@ -60,7 +60,16 @@ jQuery(function() {
     }
   });
   btn_trash.click(function() {
-    return $.post(current_sid);
+    return $.post("/song/" + current_song_info.sid + "/bye", {}, function(r) {
+      console.log(r);
+      return updateSongList(r);
+    });
+  });
+  btn_skip.click(function() {
+    return $.post("/song/" + current_song_info.sid + "/skip", {}, function(r) {
+      console.log(r);
+      return updateSongList(r);
+    });
   });
   updateCurrentSong();
   updateSongListForChannel();
