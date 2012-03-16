@@ -126,6 +126,7 @@ class Login(object):
             pass
 
 application = web.application(urls, globals())
+application.wsgifunc()
 
 if __name__ == '__main__':
     application.run()

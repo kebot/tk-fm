@@ -5,8 +5,26 @@
 {% endblock %}
 {% block main %}
 <div class="container">
-  <div class="row">
+   <div class="row">
       <div class="span4">
+        <div class="well">
+          <ul class="nav nav-list" id="channels">
+            <li><a href="/0">{{channels.personal}}</a></li>
+            {%for item in channels.public%}
+            <li class="nav-header">
+              <a data-toggle="collapse" data-parent="#channels" data-target="#cate-{{loop.index}}" href="#">{{item.cate}}<b class="caret"></b></a>
+            </li>
+            <div class="collapse out" id="cate-{{loop.index}}">
+            {% for channel in item.channels %}
+              <h6>
+                <a href="/{{channel.channel_id}}">{{channel.name}}</a>
+              </h6>
+            {% endfor %}
+            </div>
+            {%endfor%}
+          </ul>
+        </div>
+             <div class="">
           {% if cookies.is_login %}
             Hello, {{cookies.user_name}}
           {% else %}
@@ -20,7 +38,8 @@
           </form>
           {% endif %}
       </div>
-    <div class="span12">
+    </div>
+    <div class="span8">
         <table class="table table-striped" id="hear-list">
             <thead>
                 <tr>
