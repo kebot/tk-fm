@@ -9,16 +9,27 @@ import json
 from cache import store
 import config
 
-TMP_PATH = '/tmp/morelisten/'
-if not os.path.isdir(TMP_PATH):
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+TMP_PATH = '/tmp/morelisten/temp/'
+AUDIO_PATH = BASE_PATH + '/static/audio/'
+
+if not os.path.isdir(TMP_PATH): 
     os.makedirs(TMP_PATH)
+
+if not os.path.isdir(AUDIO_PATH):
+    os.makedirs(AUDIO_PATH)
 
 urls = (
     r"/", "More",
     r"/(\d+)", "More",
+
     r"/notify", "Notify",
+    r"/notify", "Notify",
+
     r"/speaker", "Speaker",
     r"/user/login", "Login",
+    r"/user/logout", "Logout",
+
     r"/audio/(\d+)/(.*)", 'Music',
     )
 
@@ -57,9 +68,12 @@ class Speaker(object):
 
 # play - sid
 class Notify(object):
-    """ the notification: 
+    """ the notification:
             current:
                 sid: ---
+
+            queue: (array)
+                [13451, 14890, ...]
     """
     def GET(self):
         current = store.getDict('current')
@@ -79,16 +93,22 @@ import urllib2
 class Music(object):
     def GET(self, sid, url):
         sid = str(sid)
-        fp = open(TMP_PATH+sid+'.mp3', 'w+')
-        LENGTH = 1024
-        url = 'http://' + url
-        up = urllib2.urlopen(url)
-        for key in up.headers.dict:
-            web.header(key, up.headers.dict.get(key))
-        for value in up:
-            fp.write(value)
-            yield value
-        fp.close()
+        TMP_FILE_NAME = TMP_PATH+sid+'.mp3.tmp'
+        FILE_NAME = AUDIO_PATH+sid+'.mp3'
+        if os.path.exists(FILE_NAME):
+            web.seeother('/static/audio/%s.mp3' % sid)
+        else:
+            fp = open(TMP_FILE_NAME, 'w+')
+            LENGTH = 1024
+            url = 'http://' + url
+            up = urllib2.urlopen(url)
+            for key in up.headers.dict:
+                web.header(key, up.headers.dict.get(key))
+            for value in up:
+                fp.write(value)
+                yield value
+            fp.close()
+            os.rename(TMP_FILE_NAME, FILE_NAME)
 
 
 class Login(object):
