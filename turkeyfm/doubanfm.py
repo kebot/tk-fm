@@ -67,28 +67,35 @@ class Client(object):
         return json.loads(response)
 
     def request(self, **extra):
+        # @TODO channel is required.
+        extra.update(channel=0)
         the_url = 'http://www.douban.com/j/app/radio/people'
         get_param = urllib.urlencode(dict(self._base_dict, **extra))
         get_url = the_url + '?' + get_param
-        return json.loads(urllib2.urlopen(get_url).read())
+        response = json.loads(urllib2.urlopen(get_url).read())
+        if response.get('song'):
+            for song in response.get('song'):
+                store.setDict(song.get('sid'), song)
+        return response
 
-    @wrap_song_list
-    def _get_song_list(self, channel=None):
-        default_channel = 1
-        channel = channel or self._current_channel or default_channel
-        return self.request(type='n', channel=channel).get('song')
+
+    def _get_song_list(self, channel=1):
+        #channel = channel or self._current_channel or default_channel
+        return self.request(type='n', channel=channel)#.get('song')
 
 class Song():
     def __init__(self, client=None, data=None, **opt):
         """ create a new song """
         if data:
-            self._client = client
             url = u'/audio/%s/%s' % (data.get('sid', ''),\
                     data.get('url', '')[7:])
             data.update(url=url)
 
             self._data = data
             self.store(data)
+
+        if client:
+            self._client = client
 
         if opt.has_key('sid'):
             sid = opt.get('sid')
@@ -125,7 +132,10 @@ class Song():
     #            self._data.get('url', '')[7:])
 
     def __getattr__(self, name):
-        return self._data.get(name)
+        if self._data:
+            return self._data.get(name)
+        else:
+            return None
 
     def __repr__(self):
         return u"<Song %s>" % self.title

@@ -9,24 +9,35 @@
       <div class="span4">
         <div class="well">
           <ul class="nav nav-list" id="channels">
-            <li><a href="/0">{{channels.personal}}</a></li>
+            {% if cookies.is_login %}
+              <li class="nav-header">Personal Channel</li>
+              <li><a href="/0">{{channels.personal}}</a></li>
+            {% else %}
+              <li class="nav-header">Login see your personal channel.</li>
+            {% endif %}
+            <li class="nav-header">
+              Public Channels
+            </li>
             {%for item in channels.public%}
             <li class="nav-header">
-              <a data-toggle="collapse" data-parent="#channels" data-target="#cate-{{loop.index}}" href="#">{{item.cate}}<b class="caret"></b></a>
+              <a data-toggle="collapse" data-parent="#channels" data-target="#cate-{{loop.index}}" href="#">{{item.cate}}</a>
             </li>
             <div class="collapse out" id="cate-{{loop.index}}">
             {% for channel in item.channels %}
-              <h6>
-                <a href="/{{channel.channel_id}}">{{channel.name}}</a>
-              </h6>
+              <ul class="nav nav-list">
+                <li>
+                  <a style="color:#777;" href="/{{channel.channel_id}}">{{channel.name}}</a>
+                </li>
+              </ul>
             {% endfor %}
             </div>
             {%endfor%}
           </ul>
         </div>
-             <div class="">
+        <div class="well">
           {% if cookies.is_login %}
             Hello, {{cookies.user_name}}
+            <a class="btn" href="/user/logout">Logout.</a>
           {% else %}
           <form action="/user/login" class="well" method="post">
             <label for="username">username</label>
@@ -40,41 +51,37 @@
       </div>
     </div>
     <div class="span8">
-        <table class="table table-striped" id="hear-list">
-            <thead>
-                <tr>
-                    <td>#</td>
-                    <td>Title</td>
-                    <td>Rate</td>
-                    <td>Artist</td>
-                    <td>Album</td>
-                </tr>
-            </thead>
-            <tbody>
-            {% for song in songs %}
-                <tr class='one_song'>
-                    <td>
-                        <button class="btn btn-play" data-sid="{{song.sid}}">
-                            <i class="icon-play"></i>
-                        </button>
-                    </td>
-                    <td>{{song.title}}</td>
-                    <td>
-                        {% if song.like == '1' %}
-                        <i class="icon-star"></i>
-                        {% else %}
-                        <i class="icon-star-empty"></i>
-                        {% endif %}
-                        {{song.rating_avg}}
-                    </td>
-                    <td>{{song.artist}}</td>
-                    <td>
-                        <a href="http://www.douban.com{{song.album}}">{{song.albumtitle}}</a>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+      <div class="well" id="current-song-info">
+        <span class="label">Now Playing:</span>
+        <span class="info">
+        </span>
+        <a class="btn pull-right" id="btn-download" href="{{current.song.url}}">
+          <i class="icon-download-alt"></i>
+        </a>
+        <a href="#" class="btn pull-right" id="btn-like">
+          <i class="icon-heart-red"></i>
+        </a>
+        <a href="#" class="btn pull-right" id="btn-trash">
+          <i class="icon-trash"></i>
+        </a>
+        <a href="#" class="btn pull-right" id="btn-refresh-song">
+          <i class="icon-refresh"></i>
+        </a>
+      </div>
+      <table class="table table-striped" id="hear-list">
+        <thead>
+          <tr>
+            <td>#</td>
+            <td>Title</td>
+            <td>Rate</td>
+            <td>Artist</td>
+            <td>Album</td>
+          </tr>
+        </thead>
+        <tbody>
+            <!-- to be replced -->
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

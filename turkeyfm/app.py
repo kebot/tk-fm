@@ -21,17 +21,17 @@ if not os.path.isdir(AUDIO_PATH):
 
 urls = (
     r"/", "More",
-    r"/(\d+)", "More",
+    r"/channel/(\d+)", "Channel",
 
-    r"/notify", "Notify",
+    r"/song/(\d+)/(\w+)", "Song",
     r"/notify", "Notify",
 
     r"/speaker", "Speaker",
     r"/user/login", "Login",
     r"/user/logout", "Logout",
 
-    r"/audio/(\d+)/(.*)", 'Music',
-    )
+    r"/audio/(\d+)/(.*)", 'Download',
+)
 
 # _status_stored_in_cookie
 render = render_jinja(
@@ -55,15 +55,40 @@ class More(object):
             self.cookies = web.storage()
         self.client = doubanfm.Client(**self.cookies)
 
+    def GET(self):
+        # songs = self.client._get_song_list(channel)
+        current = store.getDict('current')
+        return render.index(cookies=self.cookies, current=current)
+
+class Channel(object):
     def GET(self, channel=0):
-        songs = self.client._get_song_list(channel)
-        return render.index(cookies=self.cookies, songs=songs)
+        self.client = doubanfm.Client(**web.cookies())
+        return json.dumps(self.client._get_song_list(channel))
 
 
 class Speaker(object):
     """ the speaker is the user who play music"""
     def GET(self):
         return render.speaker()
+
+
+class Song(More):
+    def POST(self, sid, action):
+        client = doubanfm.Client(**web.cookies())
+        song = doubanfm.Song(client, sid=sid)
+
+        if action == 'bye':
+            response = song.bye()
+        elif action == 'rate':
+            response =  song.rate()
+        elif action == 'unrate':
+            response =  song.unrate()
+        elif action == 'skip':
+            response = song.skip()
+        else:
+            response = {}
+            # @TODO throw unsupport action
+        return json.dumps(response)
 
 
 # play - sid
@@ -90,7 +115,7 @@ class Notify(object):
 
 
 import urllib2
-class Music(object):
+class Download(object):
     def GET(self, sid, url):
         sid = str(sid)
         TMP_FILE_NAME = TMP_PATH+sid+'.mp3.tmp'
@@ -111,6 +136,11 @@ class Music(object):
             os.rename(TMP_FILE_NAME, FILE_NAME)
 
 
+def delete_cookies():
+    cookies = ['token', 'username', 'user_id', 'expire']
+    for cookie in cookies:
+        web.setcookie(cookie, '', expires=1)
+
 class Login(object):
     def POST(self):
         auth = web.input()
@@ -119,11 +149,16 @@ class Login(object):
             cookies = client.to_cookies()
             for cookie in cookies:
                 web.setcookie(*cookie)
-            return "Login Success..."
+            web.seeother('/')
         else:
-            #@TODO destory cookies
+            delete_cookies()
             return "Login Failed..."
-            pass
+
+
+class Logout(object):
+    def GET(self):
+        delete_cookies()
+        web.seeother('/')
 
 application = web.application(urls, globals())
 application.wsgifunc()
