@@ -39,6 +39,11 @@ jQuery ->
     $.get "/channel/#{channel}", (list)->
       updateSongList(list)
 
+  $('.choose-channel').click ->
+    id = $(this).attr('data-id')
+    updateSongListForChannel(id)
+    return
+
 
   btn_like.click ->
     if i_like_icon.hasClass('icon-heart')

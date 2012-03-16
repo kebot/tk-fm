@@ -39,6 +39,11 @@ jQuery(function() {
       return updateSongList(list);
     });
   };
+  $('.choose-channel').click(function() {
+    var id;
+    id = $(this).attr('data-id');
+    updateSongListForChannel(id);
+  });
   btn_like.click(function() {
     if (i_like_icon.hasClass('icon-heart')) {
       return $.post("/song/" + current_song_info.sid + "/rate", {}, function(r) {

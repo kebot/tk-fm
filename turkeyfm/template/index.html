@@ -26,7 +26,8 @@
             {% for channel in item.channels %}
               <ul class="nav nav-list">
                 <li>
-                  <a style="color:#777;" href="/{{channel.channel_id}}">{{channel.name}}</a>
+                  <a class="choose-channel" style="color:#777;" href="#"
+                      data-id="{{channel.channel_id}}">{{channel.name}}</a>
                 </li>
               </ul>
             {% endfor %}

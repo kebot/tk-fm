@@ -68,7 +68,8 @@ class Client(object):
 
     def request(self, **extra):
         # @TODO channel is required.
-        extra.update(channel=0)
+        if not extra.get('channel'):
+            extra.update(channel=0)
         the_url = 'http://www.douban.com/j/app/radio/people'
         get_param = urllib.urlencode(dict(self._base_dict, **extra))
         get_url = the_url + '?' + get_param
