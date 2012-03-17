@@ -11,7 +11,7 @@
           <ul class="nav nav-list" id="channels">
             {% if cookies.is_login %}
               <li class="nav-header">Personal Channel</li>
-              <li><a href="/0">{{channels.personal}}</a></li>
+              <li><a class="choose-channel" href="#" data-id="0">{{channels.personal}}</a></li>
             {% else %}
               <li class="nav-header">Login see your personal channel.</li>
             {% endif %}
