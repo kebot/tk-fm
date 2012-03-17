@@ -130,7 +130,8 @@ class Notify(object):
                 current_song_list.remove(sid)
                 current.update(song=store.getDict(sid))
             else:
-                current_song_list.append(sid)
+                if not sid in current_song_list:
+                    current_song_list.append(sid)
         else:
             current_song_list = []
         current.update(list=current_song_list)
