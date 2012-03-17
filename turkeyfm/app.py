@@ -23,8 +23,8 @@ urls = (
     r"/", "More",
     r"/channel/(\d+)", "Channel",
 
-    r"/song/(\d+)", "Song",
     r"/song/(\d+)/(\w+)", "Song",
+    r"/song/([\d\w_]+)", "Song",
     r"/notify", "Notify",
 
     r"/speaker", "Speaker",
@@ -59,6 +59,8 @@ class More(object):
     def GET(self):
         # songs = self.client._get_song_list(channel)
         current = store.getDict('current')
+        if not current:
+            current = {u"list":[],u"song":{}}
         return render.index(cookies=self.cookies, current=current)
 
 class Channel(object):
