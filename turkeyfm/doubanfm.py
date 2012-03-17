@@ -76,6 +76,9 @@ class Client(object):
         response = json.loads(urllib2.urlopen(get_url).read())
         if response.get('song'):
             for song in response.get('song'):
+                url = u'/audio/%s/%s' % (song.get('sid', ''),\
+                    song.get('url', '')[7:])
+                song.update(url=url)
                 store.setDict(song.get('sid'), song)
         return response
 

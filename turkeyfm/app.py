@@ -24,6 +24,7 @@ urls = (
     r"/channel/(\d+)", "Channel",
 
     r"/song/(\d+)/(\w+)", "Song",
+    r"/song/([\d\w_]+)", "Song",
     r"/notify", "Notify",
 
     r"/speaker", "Speaker",
@@ -58,6 +59,8 @@ class More(object):
     def GET(self):
         # songs = self.client._get_song_list(channel)
         current = store.getDict('current')
+        if not current:
+            current = {u"list":[],u"song":{}}
         return render.index(cookies=self.cookies, current=current)
 
 class Channel(object):
@@ -73,6 +76,10 @@ class Speaker(object):
 
 
 class Song(More):
+    def GET(self, sid):
+        current = store.getDict(sid)
+        return json.dumps(current)
+
     def POST(self, sid, action):
         client = doubanfm.Client(**web.cookies())
         song = doubanfm.Song(client, sid=sid)
@@ -97,7 +104,7 @@ class Notify(object):
             current:
                 sid: ---
 
-            queue: (array)
+            list: (array)
                 [13451, 14890, ...]
     """
     def GET(self):
@@ -107,11 +114,28 @@ class Notify(object):
             store.setDict('current', current)
         return json.dumps(current)
 
+
     def POST(self):
+        action = web.input().get('action')
         sid = web.input().get('sid')
-        song = store.getDict(sid)
-        current = dict(song=song)
+        current = store.getDict('current')
+        current_song_list = current.get('list')
+        if current_song_list != None:
+            if action == 'remove':
+                current_song_list.remove(sid)
+            elif action == 'front':
+                current_song_list.remove(sid)
+                current_song_list.insert(0, sid)
+            elif action == 'play':
+                current_song_list.remove(sid)
+                current.update(song=store.getDict(sid))
+            else:
+                current_song_list.append(sid)
+        else:
+            current_song_list = []
+        current.update(list=current_song_list)
         store.setDict('current', current)
+        return self.GET()
 
 
 import urllib2
