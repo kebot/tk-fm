@@ -1,0 +1,24 @@
+{% raw %}
+<script id="tmpl-song-info" type="text/template">
+{{#song}}
+<tr class='one_song'>
+    <td>
+        <button class="btn btn-play" data-sid="{{sid}}">
+            <i class="icon-play"></i>
+        </button>
+    </td>
+    <td>{{title}}</td>
+    <td>
+        {{#like}}
+        <i class="icon-star"></i>
+        {{/like}}
+        {{rating_avg}}
+    </td>
+    <td>{{artist}}</td>
+    <td>
+        <a href="http://www.douban.com{{album}}">{{albumtitle}}</a>
+    </td>
+</tr>
+{{/song}}
+</script>
+{% endraw %}

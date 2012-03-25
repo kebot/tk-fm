@@ -1,0 +1,9 @@
+#!/usr/bin/env love
+
+Installing
+==========
+requirements:
+  redis-server
+
+require-python-packages:
+  web 
