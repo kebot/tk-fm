@@ -23,15 +23,15 @@ urls = (
     r"/", "More",
     r"/channel/(\d+)", "Channel",
 
-    r"/song/(\d+)/(\w+)", "Song",
-    r"/song/([\d\w_]+)", "Song",
+    r"/song/(\w+)/(\w+)", "Song",
+    r"/song/(\w+)", "Song",
     r"/notify", "Notify",
 
     r"/speaker", "Speaker",
     r"/user/login", "Login",
     r"/user/logout", "Logout",
 
-    r"/audio/(\d+)/(.*)", 'Download',
+    r"/audio/(\w+)/(.*)", 'Download',
 )
 
 # _status_stored_in_cookie
