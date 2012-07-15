@@ -27,6 +27,8 @@ urls = (
     r"/song/(\w+)", "Song",
     r"/notify", "Notify",
 
+    r"/songlist", "SongList",
+
     r"/speaker", "Speaker",
     r"/user/login", "Login",
     r"/user/logout", "Logout",
@@ -97,6 +99,18 @@ class Song(More):
             # @TODO throw unsupport action
         return json.dumps(response)
 
+class SongList(More):
+    def GET(self):
+        current = store.getDict('current')
+        current_song_list = current.get('list')
+        if current_song_list == None:
+            current_song_list = []
+        def parse_song(sid):
+            return store.getDict(sid)
+        songlist = [parse_song(song_id) for song_id in current_song_list]
+        return json.dumps(songlist)
+        # return render.songlist(songs=songlist)
+
 
 # play - sid
 class Notify(object):
@@ -114,7 +128,7 @@ class Notify(object):
             store.setDict('current', current)
         return json.dumps(current)
 
-
+    # action, remove, front, play
     def POST(self):
         action = web.input().get('action')
         sid = web.input().get('sid')
