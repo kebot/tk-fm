@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Turkey Radio - Songlist{% endblock %}
+{% block header_extra %}
+    <script src="/static/js/songlist.js" type="text/javascript"></script>
+{% endblock %}
+{% block main %}
+<div class="container">
+  <div class="row">
+    <table class="table table-striped" id="playing-list">
+      <thead>
+        <tr>
+          <td>#</td>
+          <td>Title</td>
+          <td>Rate</td>
+          <td>Artist</td>
+          <td>Album</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for song in songs %}
+        <tr class='one_song'>
+            <td>
+                <button class="btn btn-play" data-sid="{{song.sid}}">
+                    <i class="icon-play"></i>
+                </button>
+            </td>
+            <td>{{song.title}}</td>
+            <td>
+                {% if song.like %}
+                  <i class="icon-star"></i>
+                {% endif %}
+                {{song.rating_avg}}
+            </td>
+            <td>{{song.artist}}</td>
+            <td>
+                <a href="http://www.douban.com{{song.album}}">{{song.albumtitle}}</a>
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+{% endblock %}
+
+
