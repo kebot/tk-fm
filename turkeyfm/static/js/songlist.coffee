@@ -1,0 +1,3 @@
+$ ->
+  $el = $('#playing-list tbody')
+
