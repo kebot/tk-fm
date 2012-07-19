@@ -36,8 +36,8 @@
           </ul>
         </div>
         <div class="well">
-          {% if cookies.is_login %}
-            Hello, {{cookies.user_name}}
+          {% if request.cookies.is_login %}
+            Hello, {{request.cookies.user_name}}
             <a class="btn" href="/user/logout">Logout.</a>
           {% else %}
           <form action="/user/login" class="well" method="post">

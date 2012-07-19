@@ -1,76 +1,88 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import underscore as _
-from types import ListType
+from flask import json
 
-import redis
+from store import RedisStore, RedisHashes
+from config import STORE_PREFIX
+RedisStore.PREFIX_KEY = STORE_PREFIX
 
-redis_server = redis.Redis('localhost')
+###########################################################
+import doubanfm
 
-class RedisList():
-    """
-        >>> jh = RedisList('default', ['hello', 'world', 'keith'])
-        >>> print jh
-    """
-    def __init__(self, key, values=[]):
-        self.key = key
-        if values:
-            redis_server.delete(self.key)
-            self.extend(values)
+##########################################################
+# Inspire by Backbone.Model
+##########################################################
+class BaseModel(object):
 
-    def append(self, x):
-        redis_server.rpush(self.key, x)
+    redis_client = None
 
-    def extend(self, l):
-        _.each(l, self.append)
-
-    def insert(self, i, x):
-        # 2 steps
-        redis_server.linsert(self.key, 'after', self.get(i), x)
-
-    def remove(self, x):
-        # 
-        index_value = redis_server.lindex(self.key, i)
-
-    def pop(self, i=None):
-        if not i:
-            return redis_server.lpop(self.key)
+    def __init__(self, store_id, attributes={}):
+        # set default instance values
+        self.defaults = {}
+        stored = RedisHashes.getall(store_id)
+        if type(stored) == dict:
+            stored.update(attributes)
+        elif stored == None:
+            stored = attributes
         else:
-            return redis_server.lrem(self.key, i)
+            raise Exception('get unsupported type %s', str(type(stored)))
+        self.attributes = stored
 
-    def index(self, x):
+    def save(self):
+        return RedisHashes.save(self.store_id, self.attributes)
+
+    def initialize(self):
+        raise NotImplementedError
+
+    def get(self, key):
+        return self.attributes.get(key)
+
+    def set(self, key, value):
+        return self.attributes.set(key, value)
+
+    def has(self, key):
+        return self.attributes.haskey(key) and self.attributes.get(key)
+
+    def unset(self, key):
+        return self.attributes.__delattr__(key)
+
+    def clear(self):
+        # delete all attributes
+        self.attributes = {}
+
+    def toJSON(self):
+        json.dumps(self.attributes)
+
+    def clone(self):
+        raise NotImplementedError
+
+    @property
+    def id(self):
+        return self.id
+
+    @property
+    def idAttribute(self, value):
         pass
 
-    def get(self, i):
-        return redis_server.lindex(self.key, i)
 
-    def __len__(self):
-        return redis_server.llen(self.key)
-
-    def __repr__(self):
-        return "<RedisList at key=%s>" % self.key
-
-
-class SongList(RedisList):
-    """
-        >>> myloft = SongList(['hello', 'world', 'keith', 'yao'])
-        >>> myloft.ding('yao')
-        >>> print myloft
-        ['yao', 'hello', 'world', 'keith']
-    """
-    def __init__(self, key, values):
-        super(SongList, self).__init__(key, values)
-
-    def shuffle(self):
-        self = _.shuffle(self)
-        return self
-
-    def ding(self, song):
-        self.insert(0, self.pop(self.index(song)))
+##################################################
+class Song(Model):
+    """docstring for Song"""
+    def __init__(self, id_key, attributes={}):
+        super(Song, self).__init__()
+        self.id_key = id_key
 
 
-songlist = SongList(['first', 'second', 'third'])
+
+import unittest
+class ModelTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_description(self):
+        pass
+
 
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+    unittest.main()
+

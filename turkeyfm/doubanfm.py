@@ -48,6 +48,10 @@ class Client(object):
             cookies.append((key, self._status.get(key), expire))
         return cookies
 
+    # 
+    def to_store(self):
+        return self._status
+
 
     def _login(self):
         self._status = self._do_login()
@@ -78,7 +82,7 @@ class Client(object):
             for song in response.get('song'):
                 url = u'/audio/%s/%s' % (song.get('sid', ''),\
                     song.get('url', '')[7:])
-                song.update(url=url)
+                song.update(local_url=url)
                 store.setDict(song.get('sid'), song)
         return response
 
@@ -86,6 +90,7 @@ class Client(object):
     def _get_song_list(self, channel=1):
         #channel = channel or self._current_channel or default_channel
         return self.request(type='n', channel=channel)#.get('song')
+
 
 class Song():
     def __init__(self, client=None, data=None, **opt):
