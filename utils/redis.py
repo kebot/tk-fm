@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import underscore as _
 from types import ListType
-
 import redis
 
 redis_server = redis.Redis('localhost')
@@ -39,7 +37,7 @@ class RedisHashes(RedisStore):
 
     @staticmethod
     def save(key, value):
-        return redis.hmset(key, value)
+        return redis_server.hmset(key, value)
 
     def __init__(self, key, value={}):
         #super(RedisHashes, self).__init__(key)
@@ -86,17 +84,23 @@ if __name__ == '__main__':
 RedisDict = RedisHashes
 
 
-class RedisList():
+class RedisList(object):
     """
         >>> jh = RedisList('default', ['hello', 'world', 'keith'])
         >>> jh
         <RedisList at key=default>
     """
     def __init__(self, key, values=[]):
+        super(RedisList, self).__init__()
+        self.initialize(key, values)
+
+    def initialize(self, key, values):
         self.key = key
         if values:
             redis_server.delete(self.key)
             self.extend(values)
+
+
 
     def append(self, x):
         redis_server.rpush(self.key, x)
@@ -129,28 +133,6 @@ class RedisList():
 
     def __repr__(self):
         return "<RedisList at key=%s>" % self.key
-
-
-class RedisDict():
-
-    def __repr__(self):
-        return "<RedisDict at key=%s>" % self.key
-
-
-
-class SongList(RedisList):
-    """
-        # >>> myloft = SongList('A', ['hello', 'world', 'keith', 'yao'])
-    """
-    def __init__(self, key, values):
-        super(SongList, self).__init__(key, values)
-
-    def shuffle(self):
-        self = _.shuffle(self)
-        return self
-
-    def ding(self, song):
-        self.insert(0, self.pop(self.index(song)))
 
 
 #songlist = SongList(['first', 'second', 'third'])

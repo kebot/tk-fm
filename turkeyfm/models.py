@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from flask import json
 
-from store import RedisStore, RedisHashes
+from store import RedisStore, RedisHashes, RedisList
 from config import STORE_PREFIX
 RedisStore.PREFIX_KEY = STORE_PREFIX
 
@@ -11,6 +11,7 @@ import doubanfm
 
 ##########################################################
 # Inspire by Backbone.Model
+# @TODO not used
 ##########################################################
 class BaseModel(object):
 
@@ -66,12 +67,19 @@ class BaseModel(object):
 
 
 ##################################################
-class Song(Model):
-    """docstring for Song"""
-    def __init__(self, id_key, attributes={}):
-        super(Song, self).__init__()
-        self.id_key = id_key
+class SongList(RedisList):
+    """
+        >>> myloft = SongList('A', ['hello', 'world', 'keith', 'yao'])
+    """
+    def __init__(self, key, values=[]):
+        super(SongList, self).__init__(key, values)
 
+    def shuffle(self):
+        self = _.shuffle(self)
+        return self
+
+    def ding(self, song):
+        self.insert(0, self.pop(self.index(song)))
 
 
 import unittest
@@ -79,7 +87,12 @@ class ModelTest(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_description(self):
+    def test_songlist(self):
+        from flask import json
+        from store import redis_server
+        # l = SongList('A', ['hello', 'world', 'all', 'you'])
+        # json.dumps(l)
+        # print redis_server.hgetall('A')
         pass
 
 
