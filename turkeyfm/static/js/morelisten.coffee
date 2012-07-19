@@ -1,11 +1,42 @@
 jQuery ->
-  # init_project
+  # song for choose.
   $('#hear-list').delegate ".one_song .btn-play", "click", (e)->
     sid = $(this).attr('data-sid')
     the_url = '/notify'
     $.post the_url, 'sid': sid
 
-  # 
+  updateSongList = (the_list) ->
+    r = $.parseJSON the_list
+    html = Mustache.render tmpl_song_info, r
+    $('#songlist-wrapper').html html
+
+  updateSongListForChannel = (channel=0) ->
+    $.get "/channel/#{channel}", (list)->
+      updateSongList(list)
+
+  $('.choose-channel').click ->
+    id = $(this).attr('data-id')
+    updateSongListForChannel(id)
+    return
+
+  updateSongListForChannel()
+
+  ####################################################################################################
+  # Current playing song list.
+  ####################################################################################################
+  tmpl_waittinglist = $('#tmpl-waittinglist').html()
+  updateWaittingList = ->
+    $.getJSON '/songlist', (list)->
+      html = Mustache.render tmpl_waittinglist, list
+      $('#songlist-wrapper').html html
+  $('#btn-songlist').click updateWaittingList
+
+  # bind events to buttons
+  #$('waittinglist').on '', '', ->
+
+  ####################################################################################################
+  # deal with current song toolbar
+  ####################################################################################################
   current_song_info = 0
 
   # buttons
@@ -29,20 +60,6 @@ jQuery ->
         div_songinfo.html """ Notplaying """
 
   tmpl_song_info = $("#tmpl-song-info").html()
-
-  updateSongList = (the_list) ->
-    r = $.parseJSON the_list
-    tbody = Mustache.render tmpl_song_info, r
-    $('#hear-list tbody').html tbody
-
-  updateSongListForChannel = (channel=0) ->
-    $.get "/channel/#{channel}", (list)->
-      updateSongList(list)
-
-  $('.choose-channel').click ->
-    id = $(this).attr('data-id')
-    updateSongListForChannel(id)
-    return
 
 
   btn_like.click ->
@@ -71,6 +88,11 @@ jQuery ->
 
 
   updateCurrentSong()
-  updateSongListForChannel()
 
   $("#btn-refresh-song").click updateCurrentSong
+
+  # ##################################################### #
+  # function with The songlist
+  # ##################################################### #
+  
+

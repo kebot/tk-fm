@@ -2,7 +2,7 @@ jQuery ->
   the_player = $('#player').get(0)
   notify_url = "/notify"
 
-  playNextSong = ->
+  playNextSong = (current_playing_song=Null)->
     $.getJSON notify_url, (r)->
       if r.list and r.list.length > 0
         sid = r.list.shift(0)
@@ -16,4 +16,4 @@ jQuery ->
         window.setTimeout playNextSong, 1000
 
   $(the_player).on 'ended', playNextSong
-  playNextSong()
+  # playNextSong()
