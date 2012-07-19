@@ -4,17 +4,9 @@
 # This is an unoffical client for DoubanFM.
 import urllib2
 import urllib
-import web
 import json
 import time
-from cache import store
-
-def wrap_song_list(func):
-    def wrapper(*argc, **argv):
-        songs = func(*argc, **argv)
-        return [Song(argc[0], song) for song in songs]
-    return wrapper
-
+from store import RedisHashes
 
 class Client(object):
     _base_dict = dict(app_name='radio_desktop_win', version='100')
@@ -48,10 +40,8 @@ class Client(object):
             cookies.append((key, self._status.get(key), expire))
         return cookies
 
-    # 
     def to_store(self):
         return self._status
-
 
     def _login(self):
         self._status = self._do_login()
@@ -83,7 +73,8 @@ class Client(object):
                 url = u'/audio/%s/%s' % (song.get('sid', ''),\
                     song.get('url', '')[7:])
                 song.update(local_url=url)
-                store.setDict(song.get('sid'), song)
+                # @TODO Save song here
+                RedisHashes.save(song.get('sid'), song)
         return response
 
 
@@ -150,10 +141,11 @@ class Song():
         return u"<Song %s>" % self.title
 
 
+
 if __name__ == '__main__':
-    username = ''
-    password = ''
+    username = 'test@yaofur.com'
+    password = 'testdouban'
     c = Client(username, password)
     songs = c._get_song_list()
-    for song in songs:
-        print song.url()
+    print songs
+
