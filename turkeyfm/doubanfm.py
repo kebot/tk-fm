@@ -6,7 +6,7 @@ import urllib2
 import urllib
 import json
 import time
-from store import RedisHashes
+from utils.redistype import RedisHashes
 
 class Client(object):
     _base_dict = dict(app_name='radio_desktop_win', version='100')
@@ -30,7 +30,10 @@ class Client(object):
 
     @property
     def is_login(self):
-        return self._status is not None
+        return self._status and self._status.get('r') == 0
+
+    def get_error(self):
+        return self._status
 
     def to_cookies(self):
         cookies = []
@@ -41,6 +44,8 @@ class Client(object):
         return cookies
 
     def to_store(self):
+        if self._status.get('user_id') and not self._status.get('icon'):
+            self._status.update({'icon': "http://img3.douban.com/icon/u"+ self._status.get('user_id') +".jpg"})
         return self._status
 
     def _login(self):
@@ -76,7 +81,6 @@ class Client(object):
                 # @TODO Save song here
                 RedisHashes.save(song.get('sid'), song)
         return response
-
 
     def _get_song_list(self, channel=1):
         #channel = channel or self._current_channel or default_channel

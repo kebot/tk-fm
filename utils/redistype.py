@@ -100,8 +100,6 @@ class RedisList(object):
             redis_server.delete(self.key)
             self.extend(values)
 
-
-
     def append(self, x):
         redis_server.rpush(self.key, x)
 
@@ -113,8 +111,8 @@ class RedisList(object):
         redis_server.linsert(self.key, 'after', self.get(i), x)
 
     def remove(self, x):
-        # 
-        index_value = redis_server.lindex(self.key, i)
+        #index_value = redis_server.lindex(self.key, i)
+        redis_server.lrem(self.key, x, 1)
 
     def pop(self, i=None):
         if not i:
@@ -127,6 +125,19 @@ class RedisList(object):
 
     def get(self, i):
         return redis_server.lindex(self.key, i)
+
+    def __getitem__(self, i):
+        if type(i) == slice:
+            return self.__getsilence__(i.start, i.stop, i.step)
+        return self.get(i)
+
+    def __getsilence__(self, start=None, stop=None, step=None):
+        if not start:
+            start = 0
+        if not stop:
+            stop = self.__len__()
+
+        return redis_server.lrange(self.key, start, stop)
 
     def __len__(self):
         return redis_server.llen(self.key)
