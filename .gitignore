@@ -2,3 +2,7 @@
 turkeyfm/public/audio/*
 *.rdb
 
+venv
+nohup.out
+
+*.DS_Store
