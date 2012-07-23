@@ -14,6 +14,5 @@ app.config.update({
 mako = MakoTemplates(app)
 app.template_folder = 'templates'
 
-
 import turkeyfm.controller
 
