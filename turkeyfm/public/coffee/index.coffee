@@ -99,7 +99,8 @@ class vPlayer extends Backbone.View
     console.log 'song changed'
     if this.model.get('playing')
       stat = 'playing'
-      audio_src = @model.get('local_url')
+      #audio_src = @model.get('local_url')
+      audio_src = @model.get('url')
       @player_el.src = audio_src
       @player_el.play()
     else
