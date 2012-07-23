@@ -12,7 +12,7 @@ coffee:
 install:
 	npm install -g juggernaut
 	virtualenv venv
-	venv/bin/pip install -r requirements.txt
+	venv/bin/pip install -r requirement.txt
 
 run:
 	redis-server redis.conf
