@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from turkeyfm import app, config, doubanfm
+from turkeyfm import app, config, doubanfm, doubandj
 #from juggernaut import Juggernaut
 from flask import request, session, json, jsonify
 from flask.ext.mako import render_template
@@ -81,6 +81,15 @@ def selected_modify(sid):
         return jsonify({'r': 0})
     return jsonify({'r':1, 'err': 'not support'})
 
+
+@app.route('/api/captcha', methods=['GET'])
+def captcha():
+    client = doubandj.Client()
+    (captcha_img, captcha_id) = client.get_captcha()
+    if captcha_img is None:
+        jsonify({'r': 0})
+    return jsonify({'r': 1, 'captcha_img': captcha_img, 'captcha_id': captcha_id})
+    
 
 @app.route('/api/login', methods=['POST'])
 def login():

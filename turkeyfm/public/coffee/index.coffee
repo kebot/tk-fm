@@ -151,12 +151,13 @@ class vPlayer extends Backbone.View
 class vLoginForm extends Backbone.View
   initialize: ->
     # this.onchange()
-    this.model.on 'change', this.onchange, this
+    this.model.on 'change', this.onchange, this  
 
   events:
     'click .close': 'hide'
     'submit form' : 'submit'
     'click #login-submit': 'submit'
+    'change #is-dj': 'show_captcha'
 
   onchange: ->
     if this.model.has('user_id')
@@ -186,7 +187,17 @@ class vLoginForm extends Backbone.View
       this.model.set r
       this.hide()
     else
-      this.onerror r.err
+      this.onerror r.err   
+  
+  show_captcha: =>
+    if this.$('#captcha-img').attr('src') == ''
+      $.get '/api/captcha', (data) ->
+        this.$('#captcha-img').attr 'src', data.
+    if this.$('#is-dj').is(':checked')
+      $("#captcha-container").slideDown()
+    else
+      $("#captcha-container").slideUp()
+
 
 class vBubblerAdd extends Backbone.View
   initialize: ->
