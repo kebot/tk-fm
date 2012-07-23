@@ -7,18 +7,18 @@ import urllib2
 import cookielib
 from BeautifulSoup import BeautifulSoup
 
-class Robot(object):
+class Client(object):
     re_comment = re.compile(r"<!-.*?-->|<!.*?-->|<!--.*?>",re.M|re.S|re.I)
     re_bracket = re.compile(r"\(\d+\)")
     
-    def __init__(self, username, password):
-        if username and password:
-            self._username = username
-            self._password = password
+    def __init__(self):
         cookie_support= urllib2.HTTPCookieProcessor(cookielib.CookieJar())
         self.opener = urllib2.build_opener(cookie_support)
-        headers = [("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_1) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.220 Safari/535.1")]
+        headers = [
+            ("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_1) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.220 Safari/535.1"),
+        ]
         self.opener.addheaders = headers
+        self._is_dj = None
         
     def get_captcha(self, url=None):
         if url is None:
@@ -34,9 +34,12 @@ class Robot(object):
             return (None, None)
         return (captcha_img, captcha_id)
     
+    @property
     def is_dj(self):
-        if 
-    
+        if self._is_dj is None:
+            self._is_dj = self.search('xx') is not False
+        return self._is_dj
+
     def request(self, url, data=None):
         request = None
         if data is None:
@@ -46,12 +49,12 @@ class Robot(object):
         response = self.opener.open(request)
         return response
     
-    def login(self, captcha_sol=None, captcha_id=None):
+    def login(self, username, password, captcha_sol=None, captcha_id=None):
         url = "https://www.douban.com/accounts/login"
         data = { "source" : "simple",
                  "redir" : "http://www.douban.com/",
-                 "form_email" : self._username,
-                 "form_password" : self._password,
+                 "form_email" : username,
+                 "form_password" : password,
                  "remember" : "on",
                  "user_login" : "登录",
                }
@@ -72,13 +75,13 @@ class Robot(object):
 if __name__ == "__main__":
     username = 'test@yaofur.com'
     password = 'testdouban'
-    robot = Robot(username, password)
+    robot = Client()
     (captcha_img, captcha_id) = robot.get_captcha()
     if captcha_img is not None:
         print captcha_img
         captcha_sol = raw_input()
-        robot.login(captcha_sol, captcha_id)
+        robot.login(username, password, captcha_sol, captcha_id)
     else:
-        robot.login()
+        robot.login(username, password)
     print robot.search("xx")
     
