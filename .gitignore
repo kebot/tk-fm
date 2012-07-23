@@ -1,2 +1,3 @@
 *.pyc
 turkeyfm/static/audio/*
+env/
