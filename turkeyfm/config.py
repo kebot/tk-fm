@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 kjo
 
+STORE_PREFIX = 'turkeyfm_'
+
 channelInfo ={
     u"personal":u"私人",
     u"public":[

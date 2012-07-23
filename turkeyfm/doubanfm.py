@@ -4,17 +4,9 @@
 # This is an unoffical client for DoubanFM.
 import urllib2
 import urllib
-import web
 import json
 import time
-from cache import store
-
-def wrap_song_list(func):
-    def wrapper(*argc, **argv):
-        songs = func(*argc, **argv)
-        return [Song(argc[0], song) for song in songs]
-    return wrapper
-
+from utils.redistype import RedisHashes
 
 class Client(object):
     _base_dict = dict(app_name='radio_desktop_win', version='100')
@@ -38,7 +30,10 @@ class Client(object):
 
     @property
     def is_login(self):
-        return self._status is not None
+        return self._status and self._status.get('r') == 0
+
+    def get_error(self):
+        return self._status
 
     def to_cookies(self):
         cookies = []
@@ -48,6 +43,10 @@ class Client(object):
             cookies.append((key, self._status.get(key), expire))
         return cookies
 
+    def to_store(self):
+        if self._status.get('user_id') and not self._status.get('icon'):
+            self._status.update({'icon': "http://img3.douban.com/icon/u"+ self._status.get('user_id') +".jpg"})
+        return self._status
 
     def _login(self):
         self._status = self._do_login()
@@ -78,14 +77,15 @@ class Client(object):
             for song in response.get('song'):
                 url = u'/audio/%s/%s' % (song.get('sid', ''),\
                     song.get('url', '')[7:])
-                song.update(url=url)
-                store.setDict(song.get('sid'), song)
+                song.update(local_url=url)
+                # @TODO Save song here
+                RedisHashes.save(song.get('sid'), song)
         return response
-
 
     def _get_song_list(self, channel=1):
         #channel = channel or self._current_channel or default_channel
         return self.request(type='n', channel=channel)#.get('song')
+
 
 class Song():
     def __init__(self, client=None, data=None, **opt):
@@ -145,10 +145,11 @@ class Song():
         return u"<Song %s>" % self.title
 
 
+
 if __name__ == '__main__':
-    username = ''
-    password = ''
+    username = 'test@yaofur.com'
+    password = 'testdouban'
     c = Client(username, password)
     songs = c._get_song_list()
-    for song in songs:
-        print song.url()
+    print songs
+
