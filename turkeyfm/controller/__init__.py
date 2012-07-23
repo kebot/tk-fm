@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from turkeyfm import app, config, doubanfm
-from juggernaut import Juggernaut
+#from juggernaut import Juggernaut
 from flask import request, session, json, jsonify
 from flask.ext.mako import render_template
 import time
 
 from utils.redistype import RedisList, RedisHashes
 
-io = Juggernaut()
+# import other controllers
+import audio
+
+# io = Juggernaut()
+from io import io
 
 @app.route('/')
 def index():
@@ -38,7 +42,7 @@ def song(song_id):
     if request.method == 'GET':
         jsonify()
 
-@app.route('/api/selected', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/api/selected', methods=['GET', 'POST'])
 def selected():
     store_key = 'selected'
     store = RedisList(store_key)
@@ -49,33 +53,33 @@ def selected():
         else:
             songs = [RedisHashes.getall(sid) for sid in store[:]]
             return jsonify({'song': songs, 'r':0, 'total': length})
-    # access data
-    if request.data:
-        data = json.loads(request.data)
-    else:
-        data = {}
+    #if request.method == 'POST':
+        #raise NotImplementException
+        #if data.get('sid'):
+            #store.append(data.get('sid'))
+            #io.publish('selected', {'change': 1})
+            #return request.data
 
-    if request.method == 'POST':
-        if data.get('sid'):
-            store.append(data.get('sid'))
-            io.publish('selected', {'change': 1})
-            return request.data
 
 @app.route('/api/selected/<int:sid>', methods=['GET', 'PUT', 'DELETE'])
 def selected_modify(sid):
     store_key = 'selected'
     store = RedisList(store_key)
-
     if request.method == 'PUT':
-        raise NotImplementException
-        pass
+        store.append(sid)
+        io.publish('selected', {'change': 1})
+        return jsonify({'r': 0})
     elif request.method == 'DELETE':
+        if request.data:
+            data = json.loads(request.data)
+        else:
+            data = {}
         store.remove(sid)
         io.publish('selected', {'change': 1})
-        return jsonify(request.data)
+        if data.get('playing'):
+            io.publish('current_song', RedisHashes.getall(sid))
+        return jsonify({'r': 0})
     return jsonify({'r':1, 'err': 'not support'})
-
-
 
 
 @app.route('/api/login', methods=['POST'])
@@ -104,5 +108,4 @@ def logout():
         session.pop(key, None)
     return jsonify({'r': 1})
     #redirect(url_for('index'))
-
 

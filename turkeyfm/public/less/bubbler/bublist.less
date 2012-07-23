@@ -1,0 +1,112 @@
+.bublist li{
+  height: 220px;
+  .shadow-layer{
+    z-index: 5;
+    height: 200px;
+    width: 200px;
+    background: #495250;
+    .box-shadow(3px 3px 0px rgba(0, 0, 0, 0.2));
+
+    @shadow-offset: 3px;
+    margin-left: @shadow-offset;
+    margin-top:  @shadow-offset;
+
+    .bublink {
+      position: relative;
+      display: block;
+      height: 200px;
+      width: 200px;
+      background: center center no-repeat;
+      background-size: cover;
+      z-index: 10;
+      left: -@shadow-offset;
+      top: -@shadow-offset;
+    }
+  }
+
+  span.title {
+    position: absolute;
+    top: 150px;
+    display: block;
+    height: 39px;
+    line-height: 39px;
+    width: 206px;
+    text-align: center;
+    font-size: 14px;
+    overflow: hidden;
+    font-size: 14px;
+    color: #101010;
+    z-index: 9;
+    background-color: rgba(255, 255, 255, 0.9);
+    .box-shadow(1px 1px 0px rgba(0, 0, 0, 0.2));
+  }
+}
+
+.bubwall-list{
+  li.bubwall{
+    border-right: 1px solid #4d5654;
+    border-bottom: 1px solid #4d5654;
+    div.bub-item{
+      .bub-cover-wrapper{
+        a.bub-cover{
+          position: relative;
+          display: block;
+          width: 220px;
+          height: 220px;
+          background: center center no-repeat;
+          .bub-title {
+            position: absolute;
+            height: 70px;
+            width: 220px;
+            top: 150px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #c5cdc9;
+            span{
+              display: block;
+            }
+            span.title{
+              font-size: 18px;
+              font-weight: bold;
+              height: 35px;
+              line-height: 35px;
+            }
+            span.artist, span.album{
+              font-size: 12px;
+              line-height: 12px;
+            }
+          }
+        }
+      } // end of cover wrapper
+
+      ul.related-bubs {
+        max-height: 510px;
+        overflow: scroll;
+        li.bub-item{
+          position: relative;
+          padding: 10px 15px;
+          .bub-avatar{
+            position: absolute;
+            height: 25px;
+            width: 25px;
+            background-size: 25px 25px;
+            background: center center no-repeat;
+            .border-radius(15px);
+          }
+          .bub-bd {
+            float: left;
+            margin-left: 35px;
+            .bub-owner{
+              font-size: 14px;
+              font-weight: bold;
+            }
+            .bub-comment {
+              font-size: 12px;
+              color: #8c8c8c;
+            }
+          }
+        }
+      }
+
+    }
+  }
+}
