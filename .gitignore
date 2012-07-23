@@ -1,2 +1,4 @@
 *.pyc
-turkeyfm/static/audio/*
+turkeyfm/public/audio/*
+*.rdb
+
