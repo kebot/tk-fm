@@ -82,18 +82,26 @@ def selected_modify(sid):
     return jsonify({'r':1, 'err': 'not support'})
 
 
+@app.route('/api/search/<query>', methods=['GET'])
+def search(query):
+    if not doubandj.client.is_dj:
+        return jsonify({'r':0, 'err': 'not dj'})
+    songs = doubandj.client.search(query)
+    return jsonify({'r':1, 'song': songs})
+
+
 @app.route('/api/captcha', methods=['GET'])
 def captcha():
-    client = doubandj.Client()
-    (captcha_img, captcha_id) = client.get_captcha()
+    (captcha_img, captcha_id) = doubandj.client.get_captcha()
     if captcha_img is None:
-        jsonify({'r': 0})
+        return jsonify({'r': 0})
     return jsonify({'r': 1, 'captcha_img': captcha_img, 'captcha_id': captcha_id})
-    
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
     username, password = [request.form.get(key) for key in ['username', 'password']]
+    captcha, captcha_id = [request.form.get(key) for key in ['captcha', 'captcha_id']]
     if username and password:
         # if user alread login xxx return hash
         if username == session.get('email'):
@@ -103,6 +111,8 @@ def login():
         return jsonify({'r': 1, 'err': 'username and password required'})
     if client.is_login:
         session.update(client.to_store())
+        if captcha and captcha_id:
+            doubandj.client.login(username, password, captcha, captcha_id)
         return jsonify(client.to_store())
     else:
         logout()
@@ -112,7 +122,7 @@ def login():
 
 @app.route('/api/logout')
 def logout():
-    keys=['expire', 'user_id', 'token', 'user_name']
+    keys=['expire', 'user_id', 'token', 'email']
     for key in keys:
         session.pop(key, None)
     return jsonify({'r': 1})
