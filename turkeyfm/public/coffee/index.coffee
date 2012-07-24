@@ -315,12 +315,10 @@ class vChannelAndSongs extends Backbone.View
     this.$('.modal-header').html template(window.channels)
 
   render_songs: ->
-    console.log this.current_channel.toJSON()
     template = Handlebars.compile $('#template-channel-songs').html()
     this.$('.modal-body').html template(this.current_channel.toJSON())
   
   render_search: ->
-    console.log this.search.toJSON()
     template = Handlebars.compile $('#template-channel-songs').html()
     this.$('.modal-body').html template(this.search.toJSON())
 
