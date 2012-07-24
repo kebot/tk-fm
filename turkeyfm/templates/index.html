@@ -116,8 +116,9 @@ ${handlebars('channel-selected')}
           <div class="control-group" id="captcha-container" style="display:none;">
             <label class="control-label" for="captcha">Captcha:</label>
             <div class="controls">
+              <img id="captcha-img" /><br/><br/>
               <input type="text" class="input-small" name="captcha" id="captcha">
-              <img id="captcha-img" src="" />
+              <input type="hidden" name="captcha-id" id="captcha-id">
             </div>
           </div>
         </fieldset>

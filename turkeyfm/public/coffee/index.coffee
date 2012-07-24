@@ -172,9 +172,11 @@ class vLoginForm extends Backbone.View
   submit: (e)-> # @ NotImplementException
     username = this.$('#username').val()
     password = this.$('#password').val()
+    captcha = this.$('#captcha').val()
+    captcha_id = this.$('#captcha-id').val()
     # console.log username
     # console.log password
-    $.post '/api/login', {'username': username, 'password': password},
+    $.post '/api/login', {'username': username, 'password': password, 'captcha': captcha, 'captcha_id', captcha_id},
       this.onlogin
     e.preventDefault()
 
@@ -190,9 +192,10 @@ class vLoginForm extends Backbone.View
       this.onerror r.err   
   
   show_captcha: =>
-    if this.$('#captcha-img').attr('src') == ''
-      $.get '/api/captcha', (data) ->
-        this.$('#captcha-img').attr 'src', data.
+    if not this.$('#captcha-img').attr('src')
+      $.get '/api/captcha', (data) =>
+        this.$('#captcha-img').attr 'src', data.captcha_img
+        this.$('#captcha-id').val data.captcha_id
     if this.$('#is-dj').is(':checked')
       $("#captcha-container").slideDown()
     else
