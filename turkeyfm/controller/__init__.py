@@ -85,17 +85,17 @@ def selected_modify(sid):
 @app.route('/api/search/<query>', methods=['GET'])
 def search(query):
     if not doubandj.client.is_dj:
-        return jsonify({'r':0, 'err': 'not dj'})
+        return jsonify({'r':1, 'err': 'not dj'})
     songs = doubandj.client.search(query)
-    return jsonify({'r':1, 'song': songs})
+    return jsonify({'r':0, 'song': songs})
 
 
 @app.route('/api/captcha', methods=['GET'])
 def captcha():
     (captcha_img, captcha_id) = doubandj.client.get_captcha()
     if captcha_img is None:
-        return jsonify({'r': 0})
-    return jsonify({'r': 1, 'captcha_img': captcha_img, 'captcha_id': captcha_id})
+        return jsonify({'r': 1})
+    return jsonify({'r': 0, 'captcha_img': captcha_img, 'captcha_id': captcha_id})
 
 
 @app.route('/api/login', methods=['POST'])
@@ -112,7 +112,7 @@ def login():
     if client.is_login:
         session.update(client.to_store())
         if captcha and captcha_id:
-            doubandj.client.login(username, password, captcha, captcha_id)
+            resp = doubandj.client.login(username, password, captcha, captcha_id)
         return jsonify(client.to_store())
     else:
         logout()

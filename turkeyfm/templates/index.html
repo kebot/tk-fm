@@ -71,8 +71,10 @@ ${handlebars('channel-selected')}
     </div>
     <div class="modal-footer">
       <!--<button class="btn">Close</button>-->
+      <div class="pull-left">
+        <input id="search-box" class="input-medium" type="text" placeholder="search" />
+      </div>
       <div id="player-wrapper">
-        <a href="/logout" class="btn btn-playpause" style="margin-top: -25px;">Logout</a>
         <audio id="player" src="#" controls="controls"></audio>
         <button class="btn btn-playpause" style="margin-top: -25px;">Playing</button>
         <div id="player-controller"></div>
@@ -123,11 +125,11 @@ ${handlebars('channel-selected')}
           </div>
         </fieldset>
       </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn">Submit(debug)</button>
-        <button id="login-submit" class="btn btn-primary">Save Changes(ajax)</button>
-      </div>
     </form>
+    <div class="modal-footer">
+      <button type="submit" class="btn">Submit(debug)</button>
+      <button id="login-submit" class="btn btn-primary">Save Changes(ajax)</button>
+    </div>
   </div>
   <!-- /login-form -->
 

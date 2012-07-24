@@ -44,9 +44,32 @@ class cChannel extends Backbone.Collection
 
   initialize: ->
 
+
 # List for selected songs.
 class cSelectedChannel extends cChannel
   url: '/api/selected'
+
+
+class cSearch extends Backbone.Collection
+  model: mSong
+  url: ->
+    return '/api/search/' + this.query
+  
+  parse: (r)->
+    if r.r == 0
+      songs = []
+      for song in r.song.songs
+        songs.push({
+            'sid': song.id
+            'artist': song.artist
+            'title': song.name
+            'album': song.source.name
+            'url': song.url
+          })
+      return songs
+    else
+      return []
+
 
 class vCurrentSong extends Backbone.View
 
@@ -148,6 +171,7 @@ class vPlayer extends Backbone.View
   log: (message)=>
     console.log 'error: ' + message
 
+
 class vLoginForm extends Backbone.View
   initialize: ->
     # this.onchange()
@@ -229,14 +253,16 @@ class vChannelAndSongs extends Backbone.View
     this.render_channels()
     this.selected = if this.options.selected then this.options.selected \
       else new cSelectedChannel
-
     this.selected.on 'all', this.render_selected, this
-
+    
     this.current_channel = if this.options.current_channel then this.options.current_channel \
       else new cChannel
-
     this.current_channel.on 'all', this.render_songs, this
-
+    
+    this.search = if this.options.search then this.options.search \
+      else new cSearch
+    this.search.on 'all', this.render_search, this
+    
     this.selected.fetch()
 
   events:{
@@ -248,6 +274,7 @@ class vChannelAndSongs extends Backbone.View
     'click .btn-delete': 'remove'
 
     'click span.selected': 'load_selected'
+    'keydown #search-box': 'load_search'
   }
 
   # add song to the list
@@ -277,17 +304,30 @@ class vChannelAndSongs extends Backbone.View
     this.current_channel.fetch()
     # $.getJSON "/api/channel/#{channel_id}", this.render_songs
 
+  load_search: (e)->
+    if e.keyCode == 13
+      query = this.$('#search-box').val()
+      this.search.query = query
+      this.search.fetch()
+  
   render_channels: ->
     template = Handlebars.compile $('#template-channels').html()
     this.$('.modal-header').html template(window.channels)
 
   render_songs: ->
+    console.log this.current_channel.toJSON()
     template = Handlebars.compile $('#template-channel-songs').html()
     this.$('.modal-body').html template(this.current_channel.toJSON())
+  
+  render_search: ->
+    console.log this.search.toJSON()
+    template = Handlebars.compile $('#template-channel-songs').html()
+    this.$('.modal-body').html template(this.search.toJSON())
 
   render_selected: ->
     template = Handlebars.compile $('#template-channel-selected').html()
     this.$('.modal-body').html template(this.selected.toJSON())
+
 
 $ ->
   current_user_model = new mUser 
