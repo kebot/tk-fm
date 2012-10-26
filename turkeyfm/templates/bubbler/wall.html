@@ -1,0 +1,21 @@
+<%inherit file="base.html" />
+<%def name="more_header()">
+    <%include file="css.html" />
+</%def>
+<%def name="content()">
+    <%include file="mods/header.html" args="owner=owner"/>
+    <div id="bd" class="clear">
+        <ul class="bublist">
+            % for board in boards:
+            <li>
+                <a href="" class="bublink" style="background-image: url(http://img1.douban.com/lpic/s4510602.jpg)">
+                    <span class="title">${board.title}</span>
+                    <span class="shandow"></span>
+                </a>
+
+                <div class="shandow"></div>
+            </li>
+            % endfor
+        </ul>
+    </div>
+</%def>

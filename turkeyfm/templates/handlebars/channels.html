@@ -1,0 +1,10 @@
+<button type="button" class="close">×</button>
+<span class="badge badge-info selected">已选</span>
+<span class="badge channel" data-id="0">私人兆赫</span>
+{{#public}}
+  {{cate}}
+  {{#channels}}
+    <span class="badge channel" data-id="{{channel_id}}">{{name}}</span>
+  {{/channels}}
+
+{{/public}}

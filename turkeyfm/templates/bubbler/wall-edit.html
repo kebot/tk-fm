@@ -1,0 +1,20 @@
+<%inherit file="base.html" />
+<%def name="more_header()">
+    <%include file="css.html" />
+    <script src="/js/bubbler/walledit.js"></script>
+</%def>
+<%def name="content()">
+    <%include file="mods/header.html" args="owner=user"/>
+    <div id="bd" class="clear">
+        <div class="bublists">
+            <%include file="mods/bublists.html" />
+        </div>
+        <div id="board-desc"></div>
+        <div class="horizon-seperator">
+            <hr/>
+        </div>
+        <div id="bublist"></div>
+    </div>
+    <%include file="templates/tmpl-board-description.html"/>
+    <%include file="templates/tmpl-bub.html"/>
+</%def>
