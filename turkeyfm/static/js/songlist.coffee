@@ -1,3 +1,0 @@
-$ ->
-  $el = $('#playing-list tbody')
-
