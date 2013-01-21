@@ -5,7 +5,6 @@ define ['backbone'], (Backbone)->
     routes:
       # personal channel
       '/song/:sid': 'change_song'
-      #
       '/place/:name': 'switch_to_place'
 
     constructor: (options)->
@@ -18,5 +17,5 @@ define ['backbone'], (Backbone)->
         console.log 'successfully running the application!'
 
     registerApplication: (app)->
-
+      # Source Code Pro for Powerline
 

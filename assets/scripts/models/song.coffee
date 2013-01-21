@@ -1,5 +1,5 @@
-define ['model'], (Model)->
-  class Song extends Model
+define ['backbone'], (Backbone)->
+  class Song extends Backbone.Model
     url: "/song/#{@id}"
 
 

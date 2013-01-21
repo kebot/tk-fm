@@ -1,0 +1,48 @@
+<div class="modal hide fade in">
+    <form class="form-horizontal">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3>Login</h3>
+        </div>
+        <div class="modal-body">
+            <div class="control-group">
+                <label class="control-label" for="alias">Email</label>
+                <div class="controls">
+                    <input type="text" id="alias" placeholder="Email">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="form_password">Password</label>
+                <div class="controls">
+                    <input type="password" id="form_password" placeholder="Password">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="captcha_solution"></label>
+                <div class="controls">
+                  <img width="220" height="40" src="{{ src }}" alt="Captcha" />
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label" for="captcha_solution">Captcha</label>
+                <div class="controls">
+                  <input name="captcha_id" value="{{captcha_id}}" type="hidden" />
+                  <input type="text" id="captcha_solution" placeholder="Captcha">
+                </div>
+
+            </div>
+
+            <div class="control-group">
+                <div class="controls">
+                    <label class="checkbox">
+                      <input type="checkbox" />Remember me</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn">Close</a>
+            <a href="#" class="btn btn-primary">Sign in</a>
+        </div>
+    </form>
+</div>

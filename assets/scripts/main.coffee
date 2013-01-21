@@ -1,5 +1,5 @@
 require.config
-  baseUrl: '/static/'
+  baseUrl: '/static/scripts/'
   distUrl: '/static/dist'
 __toString = Object.prototype.toString
 __isArray = Array.isArray or (obj)-> __toString.call(obj) == '[object Array]'
@@ -10,10 +10,11 @@ bowerDefine = (package_name, deps, main_js, non_amd_callback=null)->
     main_js = deps
     deps = []
 
-  script_path = "components/#{package_name}/#{main_js}"
+  script_path = "http://localhost:5000/static/components/#{package_name}/#{main_js}"
   if non_amd_callback
     # define for non amd package
     src_name = "#{package_name}-src"
+    # console.debug src_name, deps, script_path
     define src_name, deps, script_path
     define package_name, [src_name], non_amd_callback
   else
@@ -23,10 +24,12 @@ bowerDefine = (package_name, deps, main_js, non_amd_callback=null)->
 bowerDefine 'jquery', 'jquery.js'
 bowerDefine 'socket.io', 'dist/socket.io.js'
 bowerDefine 'underscore', 'underscore.js', -> window._
-bowerDefine 'backbone', 'backbone.js', -> window.Backbone
+bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', -> window.Backbone
+bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
 bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
 bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
 
+###
 define 'soundmanager-ready', [
   'finish',
   'soundmanager'
@@ -39,6 +42,7 @@ define 'soundmanager-ready', [
     onready: -> finish soundManager
     ontimeout: -> console.error 'soundManager is not ready'
 
+
 require [
   'socket.io'
 ], (io)->
@@ -49,12 +53,23 @@ require [
 
   socket.on 'current_song', (msg)->
     console.info 'change current_song to', msg
-    current_song.set msg
+    #current_song.set msg
 
-  # current_song
+  room_name = 'room1'
+  socket.emit 'join', room_name
+###
 
+require [
+  'jquery'
+  'backbone'
+  'views/mod/login'
+], ($, Backbone, mod_login)->
+  ## if not login, then show the login form
+  $('body').append(mod_login.el)
+  mod_login.show()
 
 ###
+
 require [
   'soundmanager-ready'
 ], (soundManager)->
@@ -64,5 +79,4 @@ require [
     url: 'http://bubbler.labs.douban.com/public/audio/biu3.mp3'
   sound_biu.play()
 ###
-
 
