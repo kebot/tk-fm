@@ -62,11 +62,17 @@ require [
 require [
   'jquery'
   'backbone'
-  'views/mod/login'
-], ($, Backbone, mod_login)->
+  'utils/ajax'
+  'models/current_user'
+], ($, Backbone, ajax, current_user)->
   ## if not login, then show the login form
-  $('body').append(mod_login.el)
-  mod_login.show()
+  ajax.json '/account', (r)->
+    if r.r == 0
+      current_user.set r.user_info
+    else
+      require ['views/mod/login'], (mod_login)->
+        $('body').append(mod_login.el)
+        mod_login.show()
 
 ###
 

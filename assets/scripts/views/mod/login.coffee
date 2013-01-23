@@ -1,9 +1,11 @@
 define [
   'backbone'
   'jquery'
+  'underscore'
   'templates/login'
-], (Backbone, $, render_template)->
-  class Model extends Backbone.Model
+  'utils/ajax'
+  'models/current_user'
+], (Backbone, $, _, render_template, ajax, current_user)->
 
   class LoginMod extends Backbone.View
     events:
@@ -14,11 +16,21 @@ define [
     initialize: ->
 
     submit: ->
-      filter = (el)->
-        $el = $(el)
-        if $el.attr 'id'
-          console.log $el.attr 'id', $el.val()
-      [filter(element) for element in @$(':input')]
+      result = {}
+      for element in @$(':input')
+        $el = $(element)
+        id = $el.attr('id')
+        val = $el.val()
+        console.log id, val
+        if id and val
+          result[id] = val
+      ajax.json '/account/login', 'POST', result, (result)=>
+        if result.r == 0 and result.user_info
+          current_user.set result.user_info
+          @hide()
+        else
+          # @TODO error handing
+          console.log result
 
     show: ->
       $.getJSON '/account/new_captcha', (response)=>
