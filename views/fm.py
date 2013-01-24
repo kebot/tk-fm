@@ -24,7 +24,7 @@ def login():
     if response:
         if response.get('r') == 0 and response.get('user_info'):
             session['user_info'] = response.get('user_info')
-            session['cookie']
+            session['cookie_info'] = client.to_dict()
 
         return jsonify(response)
     else:

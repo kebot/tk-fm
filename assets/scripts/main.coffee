@@ -1,48 +1,4 @@
-require.config
-  baseUrl: '/static/scripts/'
-  distUrl: '/static/dist'
-__toString = Object.prototype.toString
-__isArray = Array.isArray or (obj)-> __toString.call(obj) == '[object Array]'
-
-bowerDefine = (package_name, deps, main_js, non_amd_callback=null)->
-  if not __isArray deps
-    non_amd_callback = main_js
-    main_js = deps
-    deps = []
-
-  script_path = "http://localhost:5000/static/components/#{package_name}/#{main_js}"
-  if non_amd_callback
-    # define for non amd package
-    src_name = "#{package_name}-src"
-    # console.debug src_name, deps, script_path
-    define src_name, deps, script_path
-    define package_name, [src_name], non_amd_callback
-  else
-    # define for amd package
-    define package_name, deps, script_path
-
-bowerDefine 'jquery', 'jquery.js'
-bowerDefine 'socket.io', 'dist/socket.io.js'
-bowerDefine 'underscore', 'underscore.js', -> window._
-bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', -> window.Backbone
-bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
-bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
-bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
-
 ###
-define 'soundmanager-ready', [
-  'finish',
-  'soundmanager'
-], (finish, soundManager)->
-  # some setup for sound-manager2
-  soundManager.setup
-    url: '/static/components/soundmanager/swf/'
-    useHTML5Audio: true
-    #SM2 is ready to play audio!
-    onready: -> finish soundManager
-    ontimeout: -> console.error 'soundManager is not ready'
-
-
 require [
   'socket.io'
 ], (io)->
@@ -59,6 +15,67 @@ require [
   socket.emit 'join', room_name
 ###
 
+define 'collections/channel', ['backbone', 'models/song'], (Backbone, Song)->
+  ###
+  params:
+    type: s、p、e、b、n、u、r
+    s: skip
+    p: playing <when play list is empty>
+    e: end <when one song ends>
+    b: ban <when song is marked as trash>
+    n: request a new playlist
+    u: unrate, r: rate
+    sid: current_sid
+    channel: current_channle
+    r: a random key. which.length() == 10
+    kbps: 192, 128, 64
+    from: mainsite
+  ###
+
+  class ChannelListCollection extends Backbone.Collection
+    model: Song
+    url: ->
+      '/fm/mine/playlist'
+      #?type=n&sid=&pt=0.0&channel=0&from=mainsite&kbps=192&r=82e6b6a312'
+    parse: (response)->
+      if response.r == 0
+        return response.song
+
+
+define 'turkeyfm', [
+  'underscore'
+  'backbone'
+  'collections/channel',
+  'models/current_song',
+  'models/current_user'
+  'templates/iframeplayer'
+], (_, Backbone, Channel, current_song, current_user, iframeplayer)->
+  # current_channel
+  channel = new Channel()
+
+  class TurkeyFM #extends Backbone.Events
+    constructor: ->
+      _.extend this, Backbone.Events
+      @listenTo channel, 'sync', @synced
+
+    synced: ->
+      # Remove and return the first song from collection
+      current_song.set channel.shift().toJSON()
+
+    # http://www.ijusha.com/referer-anti-hotlinking/
+    initPlayer: ->
+      window.AudioPlayer = iframeplayer host: location.host
+      $('body').append '''<iframe
+        src="javascript: parent.AudioPlayer;"
+        frameBorder="0"
+        width="0"
+        height="0"></iframe>'''
+
+    rock: ->
+      @initPlayer()
+      channel.fetch()
+
+
 require [
   'jquery'
   'backbone'
@@ -74,15 +91,9 @@ require [
         $('body').append(mod_login.el)
         mod_login.show()
 
-###
+require ['turkeyfm'], (FM)->
+  lets = new FM()
+  # Let's rock, play the music!!!
+  lets.rock()
 
-require [
-  'soundmanager-ready'
-], (soundManager)->
-  # method one
-  sound_biu = soundManager.createSound
-    id: 'biu'
-    url: 'http://bubbler.labs.douban.com/public/audio/biu3.mp3'
-  sound_biu.play()
-###
 

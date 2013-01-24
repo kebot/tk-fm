@@ -1,91 +1,99 @@
+
+/*
+require [
+  'socket.io'
+], (io)->
+  socket = io.connect '/room'
+  socket.on 'connect', -> console.info 'io-connect'
+  socket.on 'disconnect', -> console.info 'io-disconnect'
+  # custom events, current_song changed
+
+  socket.on 'current_song', (msg)->
+    console.info 'change current_song to', msg
+    #current_song.set msg
+
+  room_name = 'room1'
+  socket.emit 'join', room_name
+*/
+
+
 (function() {
-  var bowerDefine, __isArray, __toString;
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  require.config({
-    baseUrl: '/static/scripts/',
-    distUrl: '/static/dist'
+  define('collections/channel', ['backbone', 'models/song'], function(Backbone, Song) {
+    /*
+      params:
+        type: s、p、e、b、n、u、r
+        s: skip
+        p: playing <when play list is empty>
+        e: end <when one song ends>
+        b: ban <when song is marked as trash>
+        n: request a new playlist
+        u: unrate, r: rate
+        sid: current_sid
+        channel: current_channle
+        r: a random key. which.length() == 10
+        kbps: 192, 128, 64
+        from: mainsite
+    */
+
+    var ChannelListCollection;
+    return ChannelListCollection = (function(_super) {
+
+      __extends(ChannelListCollection, _super);
+
+      function ChannelListCollection() {
+        return ChannelListCollection.__super__.constructor.apply(this, arguments);
+      }
+
+      ChannelListCollection.prototype.model = Song;
+
+      ChannelListCollection.prototype.url = function() {
+        return '/fm/mine/playlist';
+      };
+
+      ChannelListCollection.prototype.parse = function(response) {
+        if (response.r === 0) {
+          return response.song;
+        }
+      };
+
+      return ChannelListCollection;
+
+    })(Backbone.Collection);
   });
 
-  __toString = Object.prototype.toString;
+  define('turkeyfm', ['underscore', 'backbone', 'collections/channel', 'models/current_song', 'models/current_user', 'templates/iframeplayer'], function(_, Backbone, Channel, current_song, current_user, iframeplayer) {
+    var TurkeyFM, channel;
+    channel = new Channel();
+    return TurkeyFM = (function() {
 
-  __isArray = Array.isArray || function(obj) {
-    return __toString.call(obj) === '[object Array]';
-  };
+      function TurkeyFM() {
+        _.extend(this, Backbone.Events);
+        this.listenTo(channel, 'sync', this.synced);
+      }
 
-  bowerDefine = function(package_name, deps, main_js, non_amd_callback) {
-    var script_path, src_name;
-    if (non_amd_callback == null) {
-      non_amd_callback = null;
-    }
-    if (!__isArray(deps)) {
-      non_amd_callback = main_js;
-      main_js = deps;
-      deps = [];
-    }
-    script_path = "http://localhost:5000/static/components/" + package_name + "/" + main_js;
-    if (non_amd_callback) {
-      src_name = "" + package_name + "-src";
-      define(src_name, deps, script_path);
-      return define(package_name, [src_name], non_amd_callback);
-    } else {
-      return define(package_name, deps, script_path);
-    }
-  };
+      TurkeyFM.prototype.synced = function() {
+        return current_song.set(channel.shift().toJSON());
+      };
 
-  bowerDefine('jquery', 'jquery.js');
+      TurkeyFM.prototype.initPlayer = function() {
+        window.AudioPlayer = iframeplayer({
+          host: location.host
+        });
+        return $('body').append('<iframe\nsrc="javascript: parent.AudioPlayer;"\nframeBorder="0"\nwidth="0"\nheight="0"></iframe>');
+      };
 
-  bowerDefine('socket.io', 'dist/socket.io.js');
+      TurkeyFM.prototype.rock = function() {
+        this.initPlayer();
+        return channel.fetch();
+      };
 
-  bowerDefine('underscore', 'underscore.js', function() {
-    return window._;
+      return TurkeyFM;
+
+    })();
   });
-
-  bowerDefine('backbone', ['jquery', 'underscore'], 'backbone.js', function() {
-    return window.Backbone;
-  });
-
-  bowerDefine('handlebars', 'handlebars.runtime.js', function() {
-    return window.Handlebars;
-  });
-
-  bowerDefine('nunjucks', 'browser/nunjucks.js', function() {
-    return window.nunjucks;
-  });
-
-  bowerDefine('soundmanager', 'script/soundmanager2.js', function() {
-    return window.soundManager;
-  });
-
-  /*
-  define 'soundmanager-ready', [
-    'finish',
-    'soundmanager'
-  ], (finish, soundManager)->
-    # some setup for sound-manager2
-    soundManager.setup
-      url: '/static/components/soundmanager/swf/'
-      useHTML5Audio: true
-      #SM2 is ready to play audio!
-      onready: -> finish soundManager
-      ontimeout: -> console.error 'soundManager is not ready'
-  
-  
-  require [
-    'socket.io'
-  ], (io)->
-    socket = io.connect '/room'
-    socket.on 'connect', -> console.info 'io-connect'
-    socket.on 'disconnect', -> console.info 'io-disconnect'
-    # custom events, current_song changed
-  
-    socket.on 'current_song', (msg)->
-      console.info 'change current_song to', msg
-      #current_song.set msg
-  
-    room_name = 'room1'
-    socket.emit 'join', room_name
-  */
-
 
   require(['jquery', 'backbone', 'utils/ajax', 'models/current_user'], function($, Backbone, ajax, current_user) {
     return ajax.json('/account', function(r) {
@@ -100,17 +108,10 @@
     });
   });
 
-  /*
-  
-  require [
-    'soundmanager-ready'
-  ], (soundManager)->
-    # method one
-    sound_biu = soundManager.createSound
-      id: 'biu'
-      url: 'http://bubbler.labs.douban.com/public/audio/biu3.mp3'
-    sound_biu.play()
-  */
-
+  require(['turkeyfm'], function(FM) {
+    var lets;
+    lets = new FM();
+    return lets.rock();
+  });
 
 }).call(this);
