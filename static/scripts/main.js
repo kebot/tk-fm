@@ -79,10 +79,14 @@ require [
       };
 
       TurkeyFM.prototype.initPlayer = function() {
+        var iframe, iframewindow;
         window.AudioPlayer = iframeplayer({
           host: location.host
         });
-        return $('body').append('<iframe\nsrc="javascript: parent.AudioPlayer;"\nframeBorder="0"\nwidth="0"\nheight="0"></iframe>');
+        iframe = $('<iframe\nid="turkey-player"\nsrc="javascript: parent.AudioPlayer;"\nframeBorder="0"\nwidth="0"\nheight="0"></iframe>');
+        $('body').append(iframe);
+        iframewindow = iframe.get(0).contentWindow;
+        return iframewindow.current_song = current_song;
       };
 
       TurkeyFM.prototype.rock = function() {

@@ -52,7 +52,6 @@ define 'turkeyfm', [
 ], (_, Backbone, Channel, current_song, current_user, iframeplayer)->
   # current_channel
   channel = new Channel()
-
   class TurkeyFM #extends Backbone.Events
     constructor: ->
       _.extend this, Backbone.Events
@@ -65,11 +64,15 @@ define 'turkeyfm', [
     # http://www.ijusha.com/referer-anti-hotlinking/
     initPlayer: ->
       window.AudioPlayer = iframeplayer host: location.host
-      $('body').append '''<iframe
+      iframe = $ '''<iframe
+        id="turkey-player"
         src="javascript: parent.AudioPlayer;"
         frameBorder="0"
         width="0"
         height="0"></iframe>'''
+      $('body').append iframe
+      iframewindow = iframe.get(0).contentWindow
+      iframewindow.current_song = current_song
 
     rock: ->
       @initPlayer()

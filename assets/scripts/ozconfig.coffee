@@ -43,7 +43,7 @@ define 'soundmanager-ready', [
     allowScriptAccess: 'sameDomain'
     url: "http://#{window._rock_host}/static/components/soundmanager/swf/soundmanager2_flash_xdomain/"
     useHTML5Audio: true
-    #preferFlash: false
+    preferFlash: false
     #SM2 is ready to play audio!
     onready: -> finish soundManager
     ontimeout: -> console.error 'soundManager is not ready'

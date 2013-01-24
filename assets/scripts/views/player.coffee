@@ -8,10 +8,13 @@
 
   `playerposition` -- try to keep sync in every player their playerposition
 ###
-define ['backbone',
+
+define [
+  'underscore'
+  'backbone',
   'soundmanager-ready'
-  'models/current_song'
-], (Backbone, soundManager, current_song)->
+], (_, Backbone, soundManager)->
+  current_song = window.current_song
 
   class PlayerView extends Backbone.View
     initialize: ->
@@ -24,14 +27,11 @@ define ['backbone',
 
     changeSong: ->
       # onLoad the old song and destroy it.!!!
-      #window.audio = "<audio id='audio' controls autoplay src='#{@model.get('url')}'\ >"
-      #document.write('<iframe src="javascript:parent.audio;" frameBorder="0" scrolling="no" width="100%"></iframe>')
-      #@currentSong?.destruct()
-      #@currentSong = soundManager.createSound
-        #id: @model.get('sid')
-        #url: @model.get('url')
-      #@currentSong.play()
+      @currentSong?.destruct()
+      @currentSong = soundManager.createSound
+        id: @model.get('sid')
+        url: @model.get('url')
+      @currentSong.play()
 
   new PlayerView model: current_song
-
 
