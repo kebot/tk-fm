@@ -1,22 +1,3 @@
-
-/*
-require [
-  'socket.io'
-], (io)->
-  socket = io.connect '/room'
-  socket.on 'connect', -> console.info 'io-connect'
-  socket.on 'disconnect', -> console.info 'io-disconnect'
-  # custom events, current_song changed
-
-  socket.on 'current_song', (msg)->
-    console.info 'change current_song to', msg
-    #current_song.set msg
-
-  room_name = 'room1'
-  socket.emit 'join', room_name
-*/
-
-
 (function() {
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -66,16 +47,21 @@ require [
 
   define('turkeyfm', ['underscore', 'backbone', 'collections/channel', 'models/current_song', 'models/current_user', 'templates/iframeplayer'], function(_, Backbone, Channel, current_song, current_user, iframeplayer) {
     var TurkeyFM, channel;
+    current_song.on('play', function() {
+      return console.log('current song is playing');
+    });
     channel = new Channel();
     return TurkeyFM = (function() {
 
       function TurkeyFM() {
         _.extend(this, Backbone.Events);
-        this.listenTo(channel, 'sync', this.synced);
+        this.listenTo(channel, 'sync', this.nextSong);
+        this.listenTo(current_song, 'finish', this.nextSong);
       }
 
-      TurkeyFM.prototype.synced = function() {
-        return current_song.set(channel.shift().toJSON());
+      TurkeyFM.prototype.nextSong = function() {
+        current_song.set(channel.shift().toJSON());
+        return current_song.save();
       };
 
       TurkeyFM.prototype.initPlayer = function() {

@@ -1,19 +1,3 @@
-###
-require [
-  'socket.io'
-], (io)->
-  socket = io.connect '/room'
-  socket.on 'connect', -> console.info 'io-connect'
-  socket.on 'disconnect', -> console.info 'io-disconnect'
-  # custom events, current_song changed
-
-  socket.on 'current_song', (msg)->
-    console.info 'change current_song to', msg
-    #current_song.set msg
-
-  room_name = 'room1'
-  socket.emit 'join', room_name
-###
 
 define 'collections/channel', ['backbone', 'models/song'], (Backbone, Song)->
   ###
@@ -31,7 +15,6 @@ define 'collections/channel', ['backbone', 'models/song'], (Backbone, Song)->
     kbps: 192, 128, 64
     from: mainsite
   ###
-
   class ChannelListCollection extends Backbone.Collection
     model: Song
     url: ->
@@ -50,16 +33,21 @@ define 'turkeyfm', [
   'models/current_user'
   'templates/iframeplayer'
 ], (_, Backbone, Channel, current_song, current_user, iframeplayer)->
+  current_song.on 'play', -> console.log 'current song is playing'
+
   # current_channel
   channel = new Channel()
+
   class TurkeyFM #extends Backbone.Events
     constructor: ->
       _.extend this, Backbone.Events
-      @listenTo channel, 'sync', @synced
+      @listenTo channel, 'sync', @nextSong
+      @listenTo current_song, 'finish', @nextSong
 
-    synced: ->
+    nextSong: ->
       # Remove and return the first song from collection
       current_song.set channel.shift().toJSON()
+      current_song.save()
 
     # http://www.ijusha.com/referer-anti-hotlinking/
     initPlayer: ->
