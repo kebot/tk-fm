@@ -1,4 +1,4 @@
-define ['backbone'], (Backbone)->
+define ['backbone', 'utils/iosync'], (Backbone, IOSync)->
   #!
   # * backbone.iobind - Collection
   # * Copyright(c) 2011 Jake Luer <jake@alogicalparadox.com>
@@ -6,6 +6,7 @@ define ['backbone'], (Backbone)->
   #
 
   class IOCollection extends Backbone.Collection
+    sync: IOSync
 
   #!
   # * Version

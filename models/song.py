@@ -5,6 +5,7 @@ from .redis_model import RedisModel
 
 class Song(RedisModel):
     __prefix__ = 'song'
+    id_attribute = 'sid'
 
 class Channel(RedisModel):
     __prefix__ = 'channel'

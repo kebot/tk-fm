@@ -29,10 +29,20 @@ define 'turkeyfm', [
   'underscore'
   'backbone'
   'collections/channel',
+  'collections/current_playlist',
   'models/current_song',
   'models/current_user'
   'templates/iframeplayer'
-], (_, Backbone, Channel, current_song, current_user, iframeplayer)->
+  'utils/io'
+], (_,
+  Backbone,
+  Channel,
+  current_playlist,
+  current_song,
+  current_user,
+  iframeplayer,
+  io
+)->
   current_song.on 'play', -> console.log 'current song is playing'
 
   # current_channel
@@ -41,12 +51,15 @@ define 'turkeyfm', [
   class TurkeyFM #extends Backbone.Events
     constructor: ->
       _.extend this, Backbone.Events
-      @listenTo channel, 'sync', @nextSong
+      #@listenTo channel, 'sync', @nextSong
       @listenTo current_song, 'finish', @nextSong
+      @listenTo current_playlist, 'reset', =>
+        if _.isUndefined(current_song.id) and current_playlist.size() > 0
+          this.nextSong()
 
     nextSong: ->
       # Remove and return the first song from collection
-      current_song.set channel.shift().toJSON()
+      current_song.set current_playlist.shift().toJSON()
       current_song.save()
 
     # http://www.ijusha.com/referer-anti-hotlinking/
@@ -56,15 +69,23 @@ define 'turkeyfm', [
         id="turkey-player"
         src="javascript: parent.AudioPlayer;"
         frameBorder="0"
-        width="0"
-        height="0"></iframe>'''
+        width="100"
+        height="100"></iframe>'''
       $('body').append iframe
-      iframewindow = iframe.get(0).contentWindow
-      iframewindow.current_song = current_song
+      @iframewindow = iframe.get(0).contentWindow
+      @iframewindow.current_song = current_song
+
+    #  docstring for play
+    play: =>
+      @iframewindow.player.play()
 
     rock: ->
       @initPlayer()
-      channel.fetch()
+      io.emit 'join', 'default_room'
+      channel.fetch success: ->
+        if current_playlist.size() == 0
+          channel.each (model)->
+            current_playlist.create model.toJSON()
 
 
 require [
@@ -82,9 +103,15 @@ require [
         $('body').append(mod_login.el)
         mod_login.show()
 
-require ['turkeyfm'], (FM)->
+require [
+  'turkeyfm'
+  'jquery'
+], (FM, $)->
   lets = new FM()
   # Let's rock, play the music!!!
   lets.rock()
+  $("button").click ->
+    lets.play()
+
 
 

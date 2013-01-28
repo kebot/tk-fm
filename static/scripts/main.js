@@ -1,6 +1,7 @@
 (function() {
   var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   define('collections/channel', ['backbone', 'models/song'], function(Backbone, Song) {
     /*
@@ -45,7 +46,7 @@
     })(Backbone.Collection);
   });
 
-  define('turkeyfm', ['underscore', 'backbone', 'collections/channel', 'models/current_song', 'models/current_user', 'templates/iframeplayer'], function(_, Backbone, Channel, current_song, current_user, iframeplayer) {
+  define('turkeyfm', ['underscore', 'backbone', 'collections/channel', 'collections/current_playlist', 'models/current_song', 'models/current_user', 'templates/iframeplayer', 'utils/io'], function(_, Backbone, Channel, current_playlist, current_song, current_user, iframeplayer, io) {
     var TurkeyFM, channel;
     current_song.on('play', function() {
       return console.log('current song is playing');
@@ -54,30 +55,50 @@
     return TurkeyFM = (function() {
 
       function TurkeyFM() {
+        this.play = __bind(this.play, this);
+
+        var _this = this;
         _.extend(this, Backbone.Events);
-        this.listenTo(channel, 'sync', this.nextSong);
         this.listenTo(current_song, 'finish', this.nextSong);
+        this.listenTo(current_playlist, 'reset', function() {
+          if (_.isUndefined(current_song.id) && current_playlist.size() > 0) {
+            return _this.nextSong();
+          }
+        });
       }
 
       TurkeyFM.prototype.nextSong = function() {
-        current_song.set(channel.shift().toJSON());
+        current_song.set(current_playlist.shift().toJSON());
         return current_song.save();
       };
 
       TurkeyFM.prototype.initPlayer = function() {
-        var iframe, iframewindow;
+        var iframe;
         window.AudioPlayer = iframeplayer({
           host: location.host
         });
-        iframe = $('<iframe\nid="turkey-player"\nsrc="javascript: parent.AudioPlayer;"\nframeBorder="0"\nwidth="0"\nheight="0"></iframe>');
+        iframe = $('<iframe\nid="turkey-player"\nsrc="javascript: parent.AudioPlayer;"\nframeBorder="0"\nwidth="100"\nheight="100"></iframe>');
         $('body').append(iframe);
-        iframewindow = iframe.get(0).contentWindow;
-        return iframewindow.current_song = current_song;
+        this.iframewindow = iframe.get(0).contentWindow;
+        return this.iframewindow.current_song = current_song;
+      };
+
+      TurkeyFM.prototype.play = function() {
+        return this.iframewindow.player.play();
       };
 
       TurkeyFM.prototype.rock = function() {
         this.initPlayer();
-        return channel.fetch();
+        io.emit('join', 'default_room');
+        return channel.fetch({
+          success: function() {
+            if (current_playlist.size() === 0) {
+              return channel.each(function(model) {
+                return current_playlist.create(model.toJSON());
+              });
+            }
+          }
+        });
       };
 
       return TurkeyFM;
@@ -98,10 +119,13 @@
     });
   });
 
-  require(['turkeyfm'], function(FM) {
+  require(['turkeyfm', 'jquery'], function(FM, $) {
     var lets;
     lets = new FM();
-    return lets.rock();
+    lets.rock();
+    return $("button").click(function() {
+      return lets.play();
+    });
   });
 
 }).call(this);

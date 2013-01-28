@@ -1,5 +1,8 @@
-define ['backbone'], (Backbone)->
-  class Song extends Backbone.Model
-    url: "/song/#{@id}"
+define [
+  'models/io'
+], (IOModel)->
 
+  class Song extends IOModel
+    idAttribute: 'sid'
+    url: "/song/#{@id}"
 

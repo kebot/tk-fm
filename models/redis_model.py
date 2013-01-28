@@ -58,10 +58,6 @@ class RedisModel(object):
     def __repr__(self):
         return "<RedisModel(%s-%s)>" % (self.__prefix__, self.id)
 
-    #@property
-    #def id(self):
-        #return self.attributes.get(self.id_attribute)
-
     @property
     def redis_key(self):
         """Get the redis key that store.
@@ -71,20 +67,31 @@ class RedisModel(object):
     def fetch(self, **options):
         """Request the model's state from the redis server.
         """
-        return self.set(self.unpack(self.redis_client.hgetall(self.redis_key)))
+        print self.redis_key
+        return self.set(self.redis_client.hgetall(self.redis_key))
 
     def unpack(self, attributes):
         """unpack the value from redis
         """
+        def loads(value):
+            if type(value) == DictType:
+                return value
+            serializer.loads(value)
+
         return dict(
-            [(key, serializer.dumps(value)) for key, value in attributes.iteritems()]
+            [(key, loads(value)) for key, value in attributes.iteritems()]
         )
 
     def pack(self, attributes):
         """ pack the value before store to redis
         """
+        def dumps(value):
+            if type(value) == DictType:
+                return serializer.dumps(value)
+            return value
+
         return dict(
-            [(key, serializer.loads(value)) for key, value in response.iteritems()]
+            [(key, dumps(value)) for key, value in attributes.iteritems()]
         )
 
     def save(self, attributes=None, options=None):

@@ -19,7 +19,3 @@ define ['backbone'], (Backbone)->
     registerApplication: (app)->
       # Source Code Pro for Powerline
 
-
-
-
-
