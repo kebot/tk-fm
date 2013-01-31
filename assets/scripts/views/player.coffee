@@ -14,6 +14,7 @@ define [
   'soundmanager-ready'
 ], (_, Backbone, soundManager)->
   current_song = window.current_song
+
   class PlayerView extends Backbone.View
     initialize: ->
       @listenTo @model, 'change:sid', @changeSong
@@ -36,15 +37,21 @@ define [
     play: ->
       @currentSong.play()
 
-    changeSong: ->
+    changeSong: =>
       if not @model.get('sid')
         console.debug 'CurrentSong has not yet has a song!!!'
         return
       # onLoad the old song and destroy it.!!!
       @currentSong?.destruct()
+
+      currentTime = new Date()
+      tz = currentTime.getTime() + currentTime.getMilliseconds() / 1000
+      position = tz - @model.get('started_at')
+
       @currentSong = soundManager.createSound
         id: @model.get('sid')
-        url: "http://localhost:5000/audio/#{@model.get('sid')}/#{@model.get('url')[7...]}"
+        url: "http://#{window._rock_host}/audio/#{@model.get('sid')}/#{@model.get('url')[7...]}"
+        position: position
         onplay: => @model.trigger 'play'
         onfinish: => @model.trigger 'finish'
         onstop: => @model.trigger 'stop'
