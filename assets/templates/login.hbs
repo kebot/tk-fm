@@ -1,48 +1,58 @@
-<div class="modal hide fade in">
-    <form class="form-horizontal">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3>Login</h3>
+<div class="modal fade {{#if display}}in{{else}}hide out{{/if}}">
+  <form class="form-horizontal">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Login</h3>
+    </div>
+    <div class="modal-body">
+      <div class="control-group{{#if alias_error}} error{{/if}}">
+        <label class="control-label" for="alias">Email</label>
+        <div class="controls">
+          <input type="text" id="alias" placeholder="Email">
+          {{#if alias_error }}<span class="help-inline">{{ err_msg }}</span>{{/if}}
         </div>
-        <div class="modal-body">
-            <div class="control-group">
-                <label class="control-label" for="alias">Email</label>
-                <div class="controls">
-                    <input type="text" id="alias" placeholder="Email">
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="form_password">Password</label>
-                <div class="controls">
-                    <input type="password" id="form_password" placeholder="Password">
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="captcha_solution"></label>
-                <div class="controls">
-                  <img width="220" height="40" src="{{ src }}" alt="Captcha" />
-                </div>
-            </div>
+      </div>
 
-            <div class="control-group">
-                <label class="control-label" for="captcha_solution">Captcha</label>
-                <div class="controls">
-                  <input id="captcha_id" value="{{captcha_id}}" type="hidden" />
-                  <input type="text" id="captcha_solution" placeholder="Captcha">
-                </div>
-
-            </div>
-
-            <div class="control-group">
-                <div class="controls">
-                    <label class="checkbox">
-                      <input type="checkbox" id="remember" />Remember me</label>
-                </div>
-            </div>
+      <div class="control-group{{#if password_error}} error{{/if}}">
+        <label class="control-label" for="form_password">Password</label>
+        <div class="controls">
+          <input type="password" id="form_password" placeholder="Password">
+          {{#if password_error }}<span class="help-inline">{{ err_msg }}</span>{{/if}}
         </div>
-        <div class="modal-footer">
-            <a href="#" class="btn">Close</a>
-            <a href="#" class="btn btn-primary">Sign in</a>
+      </div>
+      {{#if captcha_id}}
+      <div class="control-group">
+        <label class="control-label" for="captcha_solution"></label>
+        <div class="controls">
+          <img width="220" height="40" src="{{ src }}" alt="Captcha" />
         </div>
-    </form>
+      </div>
+      <div class="control-group{{#if captcha_error}} error{{/if}}">
+        <label class="control-label" for="captcha_solution">Captcha</label>
+        <div class="controls">
+          <input id="captcha_id" value="{{captcha_id}}" type="hidden" />
+          <input type="text" id="captcha_solution" placeholder="Captcha">
+          {{#if captcha_error }}<span class="help-inline">{{ err_msg }}</span>{{/if}}
+        </div>
+      </div>
+      {{else}}
+      <div class="control-group">
+        <label class="control-label" for="captcha_solution"></label>
+        <div class="controls">
+          <div class="alert">Loading...</div>
+        </div>
+      </div>
+      {{/if}}
+      <div class="control-group">
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" id="remember" />Remember me</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn">Close</a>
+      <a href="#" class="btn btn-primary">Sign in</a>
+    </div>
+  </form>
 </div>
