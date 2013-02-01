@@ -1,0 +1,15 @@
+Beaker==1.6.4
+Flask==0.9
+Jinja2==2.6
+PyYAML==3.10
+Pygments==1.6rc1
+Werkzeug==0.8.3
+bpython==0.12
+docopt==0.6.0
+gevent==0.13.8
+gevent-socketio==0.3.5-rc2
+gevent-websocket==0.3.6
+greenlet==0.4.0
+redis==2.7.2
+requests==1.1.0
+wsgiref==0.1.2
