@@ -19,3 +19,6 @@ the play list will be stored in room.
 // client.on_song_ends
 
 
+@TODO create something to test sync between two device.
+
+

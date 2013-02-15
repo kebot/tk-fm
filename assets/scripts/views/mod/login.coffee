@@ -13,6 +13,7 @@ define [
       'click .close': 'hide'
       'submit form': 'submit'
       'click a.btn-primary': 'submit'
+      'click #captcha_area': 'new_captcha'
 
     initialize: ->
       @model = new Backbone.Model

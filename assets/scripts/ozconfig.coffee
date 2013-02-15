@@ -27,11 +27,14 @@ bowerDefine = (package_name, deps, main_js, non_amd_callback=null)->
 
 bowerDefine 'jquery', 'jquery.js'
 bowerDefine 'socket.io', 'dist/socket.io.js'
+bowerDefine 'moment', 'moment.js'
 bowerDefine 'underscore', 'underscore.js', -> window._
-bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', -> window.Backbone
+bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', ->
+  window.Backbone
 bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
 bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
 bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
+
 
 bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
 bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager

@@ -12,7 +12,8 @@ define [
   'underscore'
   'backbone',
   'soundmanager-ready'
-], (_, Backbone, soundManager)->
+  'moment'
+], (_, Backbone, soundManager, moment)->
   current_song = window.current_song
 
   class PlayerView extends Backbone.View
@@ -21,6 +22,8 @@ define [
       @listenTo @model, 'change:playerposition', @onPositionChange
       @changeSong()
       @onPositionChange()
+      @listenTo @model, 'play', =>
+        @model.set 'started_at', moment.utc().valueOf()
 
     onPositionChange: ->
       position = @model.get('playerposition')
@@ -29,36 +32,38 @@ define [
 
     bindEvents: ->
       @currentSong.onplay = => @model.trigger 'play'
-      #for event in ['play', 'pause', 'stop']
-        #@currentSong['on' + event] = do (event, @model)->
-          #->
-            #@model.trigger event
 
     play: ->
       @currentSong.play()
 
-    changeSong: =>
+    changeSong: ->
       if not @model.get('sid')
         console.debug 'CurrentSong has not yet has a song!!!'
         return
       # onLoad the old song and destroy it.!!!
       @currentSong?.destruct()
 
-      currentTime = new Date()
-      tz = currentTime.getTime() + currentTime.getMilliseconds() / 1000
-      position = tz - @model.get('started_at')
+      # get current time / Unix Offset(milliseconds)
+      now = moment.utc().valueOf()
+      position = @model.get('position') + now - @model.get('start_at')
+
+      #currentTime = new Date()
+      #tz = currentTime.getTime() + currentTime.getMilliseconds() / 1000
+      #position = tz - @model.get('started_at')
 
       @currentSong = soundManager.createSound
         id: @model.get('sid')
-        url: "http://#{window._rock_host}/audio/#{@model.get('sid')}/#{@model.get('url')[7...]}"
+        #url: "http://#{window._rock_host}/audio/#{@model.get('sid')}/#{@model.get('url')[7...]}"
+        url: @model.get('url')
         position: position
         onplay: => @model.trigger 'play'
         onfinish: => @model.trigger 'finish'
         onstop: => @model.trigger 'stop'
         onresume: => @model.trigger 'resume'
-        ondataerror: => console.log 'data error'
+        ondataerror: => console.error 'data error'
         whileplaying: => @model.set 'position', @currentSong.position
-        whileloading: => @model.set 'loaded', @currentSong.duration
+        #whileloading: => @model.set 'loaded', @currentSong.duration
+        onload: => @model.set 'length', @currentSong.duration
 
       @bindEvents()
       @currentSong.play()

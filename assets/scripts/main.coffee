@@ -80,7 +80,6 @@ define 'turkeyfm', [
   class TurkeyFM #extends Backbone.Events
     constructor: ->
       _.extend this, Backbone.Events
-      #@listenTo channel, 'sync', @nextSong
       @listenTo current_song, 'finish', @nextSong
       @listenTo current_playlist, 'reset', =>
         if _.isUndefined(current_song.id) and current_playlist.size() > 0
@@ -110,12 +109,19 @@ define 'turkeyfm', [
 
     rock: ->
       @initPlayer()
+      # init the header-songinfo
+      require ['views/songinfo'], (ViewSonginfo)->
+        theview = new ViewSonginfo model: current_song
+        $('#sinfo').append theview.el
+
+      # @TODO change default_room to other variables
       io.emit 'join', 'default_room'
+
       channel.fetch success: ->
         if current_playlist.size() == 0
           channel.each (model)->
+            model.set('creater', current_user.get('sessionid'))
             current_playlist.create model.toJSON()
-
 
 require [
   'jquery'
@@ -141,6 +147,4 @@ require [
   lets.rock()
   $("button").click ->
     lets.play()
-
-
 
