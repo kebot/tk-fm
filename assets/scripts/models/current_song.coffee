@@ -32,7 +32,7 @@ define [
       for key in ['position', 'length']
         attributes[key] = do (t = attributes[key])->
           m = moment(t)
-          return "#{m.minute()}.#{m.second()}"
+          return "#{m.minute()}:#{m.second()}"
       return attributes
 
   return new CurrentSong()

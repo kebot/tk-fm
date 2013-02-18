@@ -35,7 +35,6 @@ bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
 bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
 bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
 
-
 bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
 bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager
 

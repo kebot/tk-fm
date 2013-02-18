@@ -8,8 +8,6 @@ define [
   'templates/sinfo'
 ], (_, Backbone, render_template)->
 
-  render_element = (attribute, selector)->
-
   class extends Backbone.View
 
     initialize: (options)->

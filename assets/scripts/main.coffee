@@ -114,6 +114,9 @@ define 'turkeyfm', [
         theview = new ViewSonginfo model: current_song
         $('#sinfo').append theview.el
 
+      require ['views/songlist'], (songlist)->
+        $('#main').append songlist.el
+
       # @TODO change default_room to other variables
       io.emit 'join', 'default_room'
 
