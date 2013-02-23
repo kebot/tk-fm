@@ -1,12 +1,11 @@
 define [
   'collections/io',
-  'models/io',
+  'models/song',
   'utils/io'
-], (IOCollection, IOModel, io)->
-  class Song extends IOModel
+], (IOCollection, IOSong, io)->
+
+  class Song extends IOSong
     url: 'songlist'
-    idAttribute: 'sid'
-    serialize: -> @toJSON()
 
   class Playlist extends IOCollection
     model: Song
@@ -18,6 +17,9 @@ define [
           @remove @get(msg.data.sid)
         else if msg.method == 'reset'
           @reset msg.data
+
+    comparator: (song)->
+      song.get('weight')
 
   new Playlist()
 

@@ -65,19 +65,9 @@ define 'turkeyfm', [
   iframeplayer,
   io
 )->
-  current_song.on 'play', ->
-    current_time = (new Date())
-    current_song.set 'started_at',
-      current_time.getTime() + current_time.getMilliseconds() / 1000 - current_song.get('position')
-    current_song.save()
-
-  current_song.on 'change:position', ->
-    #console.log 'Player position:' + current_song.get('position')
-
-  # current_channel
   channel = new Channel()
 
-  class TurkeyFM #extends Backbone.Events
+  class TurkeyFM
     constructor: ->
       _.extend this, Backbone.Events
       @listenTo current_song, 'finish', @nextSong
@@ -85,10 +75,17 @@ define 'turkeyfm', [
         if _.isUndefined(current_song.id) and current_playlist.size() > 0
           this.nextSong()
 
+      @listenTo current_song, 'play', =>
+        if current_song.get('creater') == current_user.get('sessionid')
+          current_song.set 'report_time', moment.utc().valueOf()
+          current_song.save()
+
     nextSong: ->
-      # Remove and return the first song from collection
-      current_song.set current_playlist.shift().toJSON()
-      current_song.save()
+      if current_playlist.length > 0
+        # Remove and return the first song from collection
+        current_song.clear(silent: true)
+        current_song.set current_playlist.shift().toJSON()
+        #current_song.save()
 
     # http://www.ijusha.com/referer-anti-hotlinking/
     initPlayer: ->

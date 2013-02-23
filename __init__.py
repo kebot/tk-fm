@@ -13,4 +13,3 @@ app = init_redis_session(app)
 # Configure for socket.io
 import views
 
-

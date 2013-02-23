@@ -26,12 +26,15 @@ define [
 
     initialize: (options)->
       @collection.on 'reset', (collection, options)=>
-        collection.each @add_new
+        @$el.empty()
+        @collection.each @add_new
       , @
 
       @collection.on 'add', (model, collection, options)=>
         @add_new(model)
       , @
+      if @collection.length > 0
+        @collection.trigger 'reset'
 
     add_new: (song_model)=>
       song_view = new Song model: song_model

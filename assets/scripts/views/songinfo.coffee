@@ -17,12 +17,15 @@ define [
         @model = options.model
 
       @model.on 'change:sid', @render, @
-      @model.on 'change:position', ->
+      @model.on 'change:position change:length', ->
         attributes = @model.serialize()
         @element('div.progress-play').css 'width': attributes.precentage
         @element('div.position').text(
           "#{attributes.position} / #{attributes.length}")
       , @
+
+      if @model.get 'sid'
+        @model.trigger('change:sid')
 
     element: _.memoize (selector)-> @$el.find(selector)
 
