@@ -48,8 +48,10 @@ def get_captcha():
 @app.route('/account')
 def get_account():
     userinfo = session.get('user_info')
+    device_id = session.get('device_id')
     if userinfo:
-        return jsonify({'r': 0, 'user_info': userinfo})
+        return jsonify({'r': 0, 'user_info': userinfo, 'device_id':
+            device_id})
     else:
         return jsonify({'r': 1, 'err': 'unauthorized'})
 

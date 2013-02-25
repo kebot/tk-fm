@@ -6,7 +6,8 @@ import flask
 
 app = flask.Flask(__name__)
 
-from yafa.session import init_redis_session
+#from yafa.session import init_redis_session
+from turkeyfm.utils.session import init_redis_session
 
 app = init_redis_session(app)
 
