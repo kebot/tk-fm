@@ -123,28 +123,30 @@ define 'turkeyfm', [
             model.set('creater', current_user.get('sessionid'))
             current_playlist.create model.toJSON()
 
-require [
-  'jquery'
-  'backbone'
-  'utils/ajax'
-  'models/current_user'
-], ($, Backbone, ajax, current_user)->
-  ## if not login, then show the login form
-  ajax.json '/account', (r)->
-    if r.r == 0
-      current_user.set r.user_info
-    else
-      require ['views/mod/login'], (mod_login)->
-        $('body').append(mod_login.el)
-        mod_login.show()
+show_login = ->
+  require [
+    'jquery'
+    'backbone'
+    'utils/ajax'
+    'models/current_user'
+  ], ($, Backbone, ajax, current_user)->
+    ## if not login, then show the login form
+    ajax.json '/account', (r)->
+      if r.r == 0
+        current_user.set r.user_info
+      else
+        require ['views/mod/login'], (mod_login)->
+          $('body').append(mod_login.el)
+          mod_login.show()
 
 require [
   'turkeyfm'
   'jquery'
 ], (FM, $)->
+  show_login()
   lets = new FM()
   # Let's rock, play the music!!!
   lets.rock()
-  $("button").click ->
-    lets.play()
+  #$("button").click ->
+    #lets.play()
 
