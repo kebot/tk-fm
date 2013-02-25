@@ -6,23 +6,22 @@ from socketio.mixins import RoomsMixin, BroadcastMixin
 from turkeyfm import app
 from turkeyfm import models
 
-current_song = {}
-song_list = []
-
 class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def initialize(self):
         # @TODO a better logger
         self.logger = app.logger
         self.web_session = self.request
-        self.current_song = current_song
+        self.current_song = {}
+        self.song_list = models.Playlist()
 
     def emit_song_list(self):
         def build_song(sid):
+            extra_infos = self.song_list.get(sid)
             m = models.Song(id=sid)
             m.fetch()
-            return m.toJSON()
-        data = [build_song(sid) for sid in song_list]
+            return m.toJSON().update(extra_infos)
+        data = [build_song(sid) for sid in self.song_list]
         self.emit('songlist', { 'method': 'reset', 'data': data })
 
     def log(self, message):
@@ -44,25 +43,24 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         data = msg.get('data')
         if method == 'read':
             return True, song_list
-        elif method == 'create' or method == 'update':
-            # @TODO exists sid
-            index = data.get('index', None)
-            sid = data.get('sid')
-            if sid in song_list:
+        elif method == 'create': # or method == 'update':
+            exist_song = self.song_list.get(data.get('sid'))
+            if exist_song:
                 return True, 'Song alread exists'
-            if index:
-                song_list.insert(index, sid)
             else:
-                song_list.append(sid)
-                data['index'] = song_list.index(sid)
-            #msg['creater'] = self.session
+                song_list.add(data)
+        elif method == 'update':
+            exist_song = self.song_list.get(data.get('sid'))
+            if not exist_song:
+                return True, 'The song does not exists in songlist'
+            exist_song.update(data)
             self.log('emit_msg_to_room')
             self.emit_to_room(self.room, 'songlist', msg)
             return False, data
         elif method == 'remove':
             sid = data.get('sid')
             try:
-                song_list.remove(sid)
+                self.song_list.remove(self.song_list.get(sid))
             except ValueError:
                 self.error("%i is not in songlist" % sid)
             return False
@@ -71,6 +69,9 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_current_song(self, msg):
         method = msg.get('method')
+        data = msg.get('data')
+        if data.get('sid') != self.current_song.get('sid'):
+            self.current_song.clear()
         self.current_song.update(msg.get('data'))
         self.emit_to_room(self.room, 'current_song', self.current_song)
 

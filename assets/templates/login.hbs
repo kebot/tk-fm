@@ -23,8 +23,8 @@
       {{#if captcha_id}}
       <div class="control-group">
         <label class="control-label" for="captcha_solution"></label>
-        <div class="controls">
-          <img width="220" height="40" src="{{ src }}" alt="Captcha" />
+        <div id="captcha_area" class="controls">
+          <img width="220" height="40" src="{{ src }}" alt="Captcha"/>
         </div>
       </div>
       <div class="control-group{{#if captcha_error}} error{{/if}}">

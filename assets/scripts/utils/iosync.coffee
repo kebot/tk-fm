@@ -52,7 +52,7 @@ define ['utils/io'], (io)->
     #io.emit namespace + ":" + method, params.data, (err, data) ->
     io.emit namespace, params.data, (err, data) ->
       if err
-        options.error err
+        options.error? err
       else
         options.success data
 

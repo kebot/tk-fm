@@ -65,31 +65,27 @@ define 'turkeyfm', [
   iframeplayer,
   io
 )->
-  current_song.on 'play', ->
-    current_time = (new Date())
-    current_song.set 'started_at',
-      current_time.getTime() + current_time.getMilliseconds() / 1000 - current_song.get('position')
-    current_song.save()
-
-  current_song.on 'change:position', ->
-    #console.log 'Player position:' + current_song.get('position')
-
-  # current_channel
   channel = new Channel()
 
-  class TurkeyFM #extends Backbone.Events
+  class TurkeyFM
     constructor: ->
       _.extend this, Backbone.Events
-      #@listenTo channel, 'sync', @nextSong
       @listenTo current_song, 'finish', @nextSong
       @listenTo current_playlist, 'reset', =>
         if _.isUndefined(current_song.id) and current_playlist.size() > 0
           this.nextSong()
 
+      @listenTo current_song, 'play', =>
+        if current_song.get('creater') == current_user.get('sessionid')
+          current_song.set 'report_time', moment.utc().valueOf()
+          current_song.save()
+
     nextSong: ->
-      # Remove and return the first song from collection
-      current_song.set current_playlist.shift().toJSON()
-      current_song.save()
+      if current_playlist.length > 0
+        # Remove and return the first song from collection
+        current_song.clear(silent: true)
+        current_song.set current_playlist.shift().toJSON()
+        #current_song.save()
 
     # http://www.ijusha.com/referer-anti-hotlinking/
     initPlayer: ->
@@ -110,37 +106,47 @@ define 'turkeyfm', [
 
     rock: ->
       @initPlayer()
+      # init the header-songinfo
+      require ['views/songinfo'], (ViewSonginfo)->
+        theview = new ViewSonginfo model: current_song
+        $('#sinfo').append theview.el
+
+      require ['views/songlist'], (songlist)->
+        $('#main').append songlist.el
+
+      # @TODO change default_room to other variables
       io.emit 'join', 'default_room'
+
       channel.fetch success: ->
         if current_playlist.size() == 0
           channel.each (model)->
+            model.set('creater', current_user.get('sessionid'))
             current_playlist.create model.toJSON()
 
-
-require [
-  'jquery'
-  'backbone'
-  'utils/ajax'
-  'models/current_user'
-], ($, Backbone, ajax, current_user)->
-  ## if not login, then show the login form
-  ajax.json '/account', (r)->
-    if r.r == 0
-      current_user.set r.user_info
-    else
-      require ['views/mod/login'], (mod_login)->
-        $('body').append(mod_login.el)
-        mod_login.show()
+show_login = ->
+  require [
+    'jquery'
+    'backbone'
+    'utils/ajax'
+    'models/current_user'
+  ], ($, Backbone, ajax, current_user)->
+    ## if not login, then show the login form
+    ajax.json '/account', (r)->
+      if r.r == 0
+        current_user.set r.user_info
+      else
+        require ['views/mod/login'], (mod_login)->
+          $('body').append(mod_login.el)
+          mod_login.show()
 
 require [
   'turkeyfm'
   'jquery'
 ], (FM, $)->
+  show_login()
   lets = new FM()
   # Let's rock, play the music!!!
   lets.rock()
-  $("button").click ->
-    lets.play()
-
-
+  #$("button").click ->
+    #lets.play()
 
