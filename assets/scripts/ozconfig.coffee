@@ -38,11 +38,13 @@ bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
 bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
 bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager
 
+define 'utils/io-init', 'utils/io.js'
+
 define 'soundmanager-ready', [
   'finish',
   'soundmanager'
 ], (finish, soundManager)->
-  soundManager.debugFlash = true
+  soundManager.debugFlash = false
   # some setup for sound-manager2
   soundManager.setup
     allowScriptAccess: 'sameDomain'
@@ -53,6 +55,7 @@ define 'soundmanager-ready', [
     onready: -> finish soundManager
     ontimeout: -> console.error 'soundManager is not ready'
     waitForWindowLoad: true
+    debugMode: false
 
 # // finish define libs
 

@@ -1,11 +1,18 @@
 define [
   'collections/io',
-  'models/song',
+  'backbone',
+  'utils/iosync',
   'utils/io'
-], (IOCollection, IOSong, io)->
-
-  class Song extends IOSong
+], (
+  IOCollection,
+  Backbone,
+  iosync,
+  io
+)->
+  class Song extends Backbone.Model
     url: 'songlist'
+    sync: iosync
+    serialize: -> @toJSON()
 
   class Playlist extends IOCollection
     model: Song

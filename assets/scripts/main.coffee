@@ -72,11 +72,12 @@ define 'turkeyfm', [
       _.extend this, Backbone.Events
       @listenTo current_song, 'finish', @nextSong
       @listenTo current_playlist, 'reset', =>
+        console.debug 'Trigger current_playlist.reset, at `main.coffee`, line76'
         if _.isUndefined(current_song.id) and current_playlist.size() > 0
           this.nextSong()
 
       @listenTo current_song, 'play', =>
-        if current_song.get('creater') == current_user.get('sessionid')
+        if current_song.get('creater') == current_user.get('device_id')
           current_song.set 'report_time', moment.utc().valueOf()
           current_song.save()
 
@@ -115,13 +116,22 @@ define 'turkeyfm', [
         $('#main').append songlist.el
 
       # @TODO change default_room to other variables
-      io.emit 'join', 'default_room'
-
-      channel.fetch success: ->
+      io.emit 'join', 'default_room', (resp)=>
+        current_song.clear({silent: true})
+        current_song.set(resp.current_song)
+        current_playlist.reset(resp.song_list)
         if current_playlist.size() == 0
-          channel.each (model)->
-            model.set('creater', current_user.get('sessionid'))
-            current_playlist.create model.toJSON()
+          channel.fetch success: ->
+            # @TODO for future, will stop this, channel will always
+            # auto-refresh, when the play-list is empty, every-user will
+            # choose one song and add to the playlist.
+            channel.each (model)->
+              model.set('creater', current_user.get('device_id'))
+              current_playlist.create model.toJSON()
+            if _.isUndefined(current_song.id)
+              # current_song is not playing
+              current_playlist.trigger('reset')
+
 
 show_login = ->
   require [

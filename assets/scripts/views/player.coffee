@@ -24,10 +24,6 @@ define [
       @listenTo @model, 'change:sid', @changeSong
       @listenTo @model, 'change:playerposition', @onPositionChange
 
-      #@listenTo @model, 'play', =>
-        #@model.set 'report_time', moment.utc().valueOf()
-        #@model.save()
-
       @changeSong()
       @onPositionChange()
 
@@ -62,7 +58,7 @@ define [
           @model.set 'length', @currentSong.duration
           now = moment.utc().valueOf()
           position = (@model.get('position') or 0) \
-                      + now - @model.get('report_time')
+                      + now - (@model.get('report_time') or now)
           if position > @model.get('length')
             @model.trigger 'finish'
             @currentSong.stop()

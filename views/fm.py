@@ -39,7 +39,6 @@ def login():
 
 @app.route('/account/new_captcha')
 def get_captcha():
-    # a = requests.get('http://douban.fm/j/new_captcha')
     client = WebClient()
     captcha_id, src = client.get_captcha()
     return jsonify({u'captcha_id': captcha_id, u'src': src })
@@ -50,8 +49,8 @@ def get_account():
     userinfo = session.get('user_info')
     device_id = session.get('device_id')
     if userinfo:
-        return jsonify({'r': 0, 'user_info': userinfo, 'device_id':
-            device_id})
+        return jsonify({'r': 0, 'user_info': dict(userinfo,
+            device_id = device_id)})
     else:
         return jsonify({'r': 1, 'err': 'unauthorized'})
 

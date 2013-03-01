@@ -19,9 +19,10 @@ define [
       @model.on 'change:sid', @render, @
       @model.on 'change:position change:length', ->
         attributes = @model.serialize()
-        @element('div.progress-play').css 'width': attributes.precentage
-        @element('div.position').text(
+        @$el.find('div.progress-play').css 'width': attributes.precentage
+        @$el.find('div.position').text(
           "#{attributes.position} / #{attributes.length}")
+        #console.log "#{attributes.position} / #{attributes.length}"
       , @
 
       if @model.get 'sid'

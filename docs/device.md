@@ -1,3 +1,10 @@
+The document is about how to Store Device-info and Session-Info
+--------------------------------------------------------------------------
+TODO:
+    1. Write a Session Interface to Connect Device_id and Session_id(Done)
+    2. Store device-info to session(Done)
+
+
 User -> Device
 
 Three kinds of `id` for every connected device
@@ -5,7 +12,7 @@ Three kinds of `id` for every connected device
   These id is related to web-session:
     - <Douban uid>
     - <Device id>
-
+ 
   <SocketIo Session Id> - Unique for every connection.(One device may have many
 connection, but only one in the same time)
 

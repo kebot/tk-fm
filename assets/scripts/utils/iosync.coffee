@@ -54,5 +54,5 @@ define ['utils/io'], (io)->
       if err
         options.error? err
       else
-        options.success data
+        options.success model, data, {}
 
