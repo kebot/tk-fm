@@ -54,16 +54,18 @@ define 'turkeyfm', [
   'collections/current_playlist',
   'models/current_song',
   'models/current_user'
-  'templates/iframeplayer'
+  #'templates/iframeplayer'
   'utils/io'
-], (_,
-  Backbone,
-  Channel,
-  current_playlist,
-  current_song,
-  current_user,
-  iframeplayer,
+  'utils/time'
+], (_
+  Backbone
+  Channel
+  current_playlist
+  current_song
+  current_user
+  #iframeplayer
   io
+  time
 )->
   channel = new Channel()
 
@@ -78,7 +80,7 @@ define 'turkeyfm', [
 
       @listenTo current_song, 'play', =>
         if current_song.get('creater') == current_user.get('device_id')
-          current_song.set 'report_time', moment.utc().valueOf()
+          current_song.set 'report_time', time.current()
           current_song.save()
 
     nextSong: ->
@@ -88,34 +90,7 @@ define 'turkeyfm', [
         current_song.set current_playlist.shift().toJSON()
         #current_song.save()
 
-    # http://www.ijusha.com/referer-anti-hotlinking/
-    initPlayer: ->
-      window.AudioPlayer = iframeplayer host: location.host
-      iframe = $ '''<iframe
-        id="turkey-player"
-        src="javascript: parent.AudioPlayer;"
-        frameBorder="0"
-        width="100"
-        height="100"></iframe>'''
-      $('body').append iframe
-      @iframewindow = iframe.get(0).contentWindow
-      @iframewindow.current_song = current_song
-
-    #  docstring for play
-    play: =>
-      @iframewindow.player.play()
-
-    rock: ->
-      @initPlayer()
-      # init the header-songinfo
-      require ['views/songinfo'], (ViewSonginfo)->
-        theview = new ViewSonginfo model: current_song
-        $('#sinfo').append theview.el
-
-      require ['views/songlist'], (songlist)->
-        $('#main').append songlist.el
-
-      # @TODO change default_room to other variables
+    joinroom: ->
       io.emit 'join', 'default_room', (resp)=>
         current_song.clear({silent: true})
         current_song.set(resp.current_song)
@@ -132,6 +107,22 @@ define 'turkeyfm', [
               # current_song is not playing
               current_playlist.trigger('reset')
 
+
+    rock: ->
+      #@initPlayer()
+      require ['views/player'], (player)->
+
+      # init the header-songinfo
+      require ['views/songinfo'], (ViewSonginfo)->
+        theview = new ViewSonginfo model: current_song
+        $('#sinfo').append theview.el
+
+      require ['views/songlist'], (songlist)->
+        $('#main').append songlist.el
+
+      io.on 'connect', @joinroom
+      if io.socket.connected
+        @joinroom()
 
 show_login = ->
   require [
@@ -157,6 +148,4 @@ require [
   lets = new FM()
   # Let's rock, play the music!!!
   lets.rock()
-  #$("button").click ->
-    #lets.play()
 

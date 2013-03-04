@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import time
+
 from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
@@ -33,6 +35,9 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def error(self, message):
         self.logger.error("[{0}] {1}".format(self.socket.sessid, message))
+
+    def on_ntp(self):
+        return False, time.time() * 1000
 
     def on_join(self, room):
         self.log('someone join the room')

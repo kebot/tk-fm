@@ -1,13 +1,16 @@
 define [
   'models/io'
-  'moment'
-], (IOModel, moment)->
+  'utils/time'
+], (
+  IOModel
+  time
+)->
 
   class Song extends IOModel
     idAttribute: 'sid'
     url: "/song/#{@id}"
     serialize: -> @toJSON()
     initialize: (attributes, options)->
-      @set 'weight', moment.utc().valueOf()
+      @set 'weight', time.current()
 
 

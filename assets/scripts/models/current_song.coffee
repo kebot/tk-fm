@@ -30,9 +30,11 @@ define [
         attributes['precentage'] = "0%"
 
       for key in ['position', 'length']
-        attributes[key] = do (t = attributes[key])->
-          m = moment(t)
-          return "#{m.minute()}:#{m.second()}"
+        if _.isUndefined(attributes[key]) or _.isNull(attributes[key])
+          attributes[key] = ""
+          continue
+        m = moment(attributes[key])
+        attributes[key] = "#{m.minute()}:#{m.second()}"
       return attributes
 
   return new CurrentSong()

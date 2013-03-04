@@ -3,7 +3,7 @@ define 'utils/io', [
   'models/current_user'
 ], (
   io,
-  current_user,
+  current_user
 )->
   ns = io.connect '/room'
   ns.on 'connect', (data)->

@@ -1,8 +1,23 @@
 Sync `playerposition`(`current_song`) and `songlist` between users
 ----------------------------------------------------------------------------
 
+Python Side:
+`time.time() * 1000`
+
+1. is this a unix timestamp
+2. is this a utc time
+
+> @TODO programing process time to access more currently time.
+
 # Sync time **Stable**
 =========================================
+Device-time could be different, so 
+
+  1. Make a request from current device to get the time from target device
+  2. Calculate time spent on roundtrip
+  3. Time difference is: (TargetDeviceTime - TimeSpentOnRoundTrip) - CurrentDeviceTime
+
+[Time Sync Algorithm](http://www.cnblogs.com/lbq1221119/archive/2010/01/14/1647829.html)
 
 dj -> {report_time: ts, position: ta} -> broadcast ===> 
     listener:

@@ -29,8 +29,7 @@ bowerDefine 'jquery', 'jquery.js'
 bowerDefine 'socket.io', 'dist/socket.io.js'
 bowerDefine 'moment', 'moment.js'
 bowerDefine 'underscore', 'underscore.js', -> window._
-bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', ->
-  window.Backbone
+bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', -> window.Backbone
 bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
 bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
 bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
@@ -38,24 +37,9 @@ bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
 bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
 bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager
 
+# redirect libs
 define 'utils/io-init', 'utils/io.js'
-
-define 'soundmanager-ready', [
-  'finish',
-  'soundmanager'
-], (finish, soundManager)->
-  soundManager.debugFlash = false
-  # some setup for sound-manager2
-  soundManager.setup
-    allowScriptAccess: 'sameDomain'
-    url: "http://#{window._rock_host}/static/components/soundmanager/swf/soundmanager2_flash_xdomain/"
-    useHTML5Audio: true
-    preferFlash: false
-    #SM2 is ready to play audio!
-    onready: -> finish soundManager
-    ontimeout: -> console.error 'soundManager is not ready'
-    waitForWindowLoad: true
-    debugMode: false
-
+#define 'soundmanager-ready', 'views/player.js'
+define 'use', 'utils/use.js'
 # // finish define libs
 
