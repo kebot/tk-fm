@@ -21,54 +21,25 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ###
 
-define 'collections/channel', ['backbone', 'models/song'], (Backbone, Song)->
-  ###
-  params:
-    type: s、p、e、b、n、u、r
-    s: skip
-    p: playing <when play list is empty>
-    e: end <when one song ends>
-    b: ban <when song is marked as trash>
-    n: request a new playlist
-    u: unrate, r: rate
-    sid: current_sid
-    channel: current_channle
-    r: a random key. which.length() == 10
-    kbps: 192, 128, 64
-    from: mainsite
-  ###
-  class ChannelListCollection extends Backbone.Collection
-    model: Song
-    url: ->
-      '/fm/mine/playlist'
-      #?type=n&sid=&pt=0.0&channel=0&from=mainsite&kbps=192&r=82e6b6a312'
-    parse: (response)->
-      if response.r == 0
-        return response.song
-
 
 define 'turkeyfm', [
   'underscore'
   'backbone'
-  'collections/channel',
   'collections/current_playlist',
   'models/current_song',
   'models/current_user'
-  #'templates/iframeplayer'
   'utils/io'
   'utils/time'
+  'fmclient'
 ], (_
   Backbone
-  Channel
   current_playlist
   current_song
   current_user
-  #iframeplayer
   io
   time
+  FMClient
 )->
-  channel = new Channel()
-
   class TurkeyFM
     constructor: ->
       _.extend this, Backbone.Events
@@ -86,24 +57,13 @@ define 'turkeyfm', [
     nextSong: ->
       if current_playlist.length > 0
         # Remove and return the first song from collection
-        current_song.clear(silent: true)
         next_song = current_playlist.shift()
+        console.debug 'Current_song:', current_song.id, 'Next_song:', next_song.id
+        current_song.clear(silent: true)
         current_song.set next_song.toJSON()
         next_song.destroy()
       else
-        @moreSong()
-
-    moreSong: ->
-      channel.fetch success: ->
-        # @TODO for future, will stop this, channel will always
-        # auto-refresh, when the play-list is empty, every-user will
-        # choose one song and add to the playlist.
-        channel.each (model)->
-          model.set('creater', current_user.get('device_id'))
-          current_playlist.create model.toJSON()
-        if _.isUndefined(current_song.id)
-          # current_song is not playing
-          current_playlist.trigger('reset')
+        FMClient.moreSong()
 
     joinroom: =>
       io.emit 'join', 'default_room', (resp)=>
@@ -111,7 +71,7 @@ define 'turkeyfm', [
         current_song.set(resp.current_song)
         current_playlist.reset(resp.song_list)
         if current_playlist.size() == 0
-          @moreSong()
+          FMClient.moreSong()
 
     rock: ->
       #@initPlayer()
