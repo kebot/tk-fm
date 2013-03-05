@@ -13,6 +13,7 @@ define [
     url: 'songlist'
     sync: iosync
     serialize: -> @toJSON()
+    idAttribute: 'sid'
 
   class Playlist extends IOCollection
     model: Song
@@ -20,7 +21,7 @@ define [
       io.on 'songlist', (msg)=>
         if msg.method == 'create'
           @add msg.data
-        else if msg.method == 'remove'
+        else if msg.method == 'delete'
           @remove @get(msg.data.sid)
         else if msg.method == 'reset'
           @reset msg.data

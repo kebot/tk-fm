@@ -60,13 +60,14 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
             #self.log(self.song_list)
             self.emit_to_room(self.room, 'songlist', msg)
             return False, data
-        elif method == 'remove':
+        elif method == 'delete' or method == 'remove':
             sid = data.get('sid')
             try:
                 self.song_list.remove(self.song_list.get(sid))
+                self.emit_to_room(self.room, 'songlist', msg)
             except ValueError:
                 self.error("%i is not in songlist" % sid)
-            return False
+            return [False]
         else:
             return True, {}
 

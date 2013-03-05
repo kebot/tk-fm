@@ -105,7 +105,7 @@ define 'turkeyfm', [
           # current_song is not playing
           current_playlist.trigger('reset')
 
-    joinroom: ->
+    joinroom: =>
       io.emit 'join', 'default_room', (resp)=>
         current_song.clear({silent: true})
         current_song.set(resp.current_song)
