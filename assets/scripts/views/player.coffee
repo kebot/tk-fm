@@ -63,9 +63,9 @@ define [
     initialize: ->
       @listenTo @model, 'change:sid', @changeSong
       @listenTo @model, 'change:playerposition', @onPositionChange
-
       @changeSong()
       @onPositionChange()
+      #@current_sid = null
 
     onPositionChange: ->
       position = @model.get('playerposition')
@@ -80,11 +80,14 @@ define [
         console.debug 'CurrentSong has not yet has a song!!!'
         return
 
-      # unload the old song and destroy it.!!!
-      @currentSong?.destruct()
+      if @current_sid
+        # unload the old song and destroy it.!!!
+        console.debug 'destroy sid:', @current_sid
+        soundManager.destroySound @current_sid
+        #@currentSong?.destruct()
 
-      # get current time / Unix Offset(milliseconds)
-      @currentSong = soundManager.createSound
+      @current_sid = @model.get('sid')
+      current_song = soundManager.createSound
         id: @model.get('sid')
         url: @model.get('url')
         #position: position
@@ -93,40 +96,38 @@ define [
         onstop: => @model.trigger 'stop'
         onresume: => @model.trigger 'resume'
         ondataerror: => console.error 'data error'
-        whileplaying: => @model.set 'position', @currentSong.position
-
+        whileplaying: => @model.set 'position', current_song.position
         onload: (success)=>
+          console.debug @current_sid, ' :onload'
           if not success
             console.log 'load music error!'
             @model.trigger 'finish'
             return
-
-          @model.set 'length', @currentSong.durationEstimate
-
+          @model.set 'length', current_song.durationEstimate
           getCurrentPosition = =>
             now = time.current()
             position = (@model.get('position') or 0) \
                       + now - (@model.get('report_time') or now)
-
           setPositionIfLoaded = =>
             position = getCurrentPosition()
             if position > @model.get('length')
               @model.trigger 'finish'
-              @currentSong.stop()
+              #@currentSong.stop()
               return false
-            else if position < @currentSong.duration
-              @currentSong.setPosition(position)
+            else if position < current_song.duration
+              console.debug @current_sid, ' set position to - ', position
+              current_song.setPosition(position)
               @model.once 'change:position', => @model.trigger 'play'
               return true
             else
+              console.debug 'setPositionIfLoaded: do nothing'
               return false
-
           if not setPositionIfLoaded()
-            @currentSong.options.whileloading = => loaded_callback()
-
+            current_song.options.whileloading = =>
+              console.debug 'event: whileloading!'
+              setPositionIfLoaded()
         onsuspend: => console.log 'suspend!!!!!!!!!!!'
-
-      @currentSong.play()
+      current_song.play()
 
   new PlayerView model: current_song
 
