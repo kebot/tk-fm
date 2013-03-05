@@ -94,18 +94,37 @@ define [
         onresume: => @model.trigger 'resume'
         ondataerror: => console.error 'data error'
         whileplaying: => @model.set 'position', @currentSong.position
-        onload: =>
-          @model.set 'length', @currentSong.duration
-          now = time.current()
-          position = (@model.get('position') or 0) \
-                      + now - (@model.get('report_time') or now)
-          if position > @model.get('length')
+
+        onload: (success)=>
+          if not success
+            console.log 'load music error!'
             @model.trigger 'finish'
-            @currentSong.stop()
             return
-          @currentSong.setPosition(position)
-          @model.trigger 'play'
-        #onsuspend: => console.log 'suspend!!!!!!!!!!!'
+
+          @model.set 'length', @currentSong.durationEstimate
+
+          getCurrentPosition = =>
+            now = time.current()
+            position = (@model.get('position') or 0) \
+                      + now - (@model.get('report_time') or now)
+
+          setPositionIfLoaded = =>
+            position = getCurrentPosition()
+            if position > @model.get('length')
+              @model.trigger 'finish'
+              @currentSong.stop()
+              return false
+            else if position < @currentSong.duration
+              @currentSong.setPosition(position)
+              @model.once 'change:position', => @model.trigger 'play'
+              return true
+            else
+              return false
+
+          if not setPositionIfLoaded()
+            @currentSong.options.whileloading = => loaded_callback()
+
+        onsuspend: => console.log 'suspend!!!!!!!!!!!'
 
       @currentSong.play()
 

@@ -18,8 +18,6 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.logger = app.logger
         self.web_session = self.request
         # @TODO create model for current_song
-        print g_current_song
-        print g_song_list
         self.current_song = g_current_song
         self.song_list = g_song_list #models.Playlist()
 
@@ -37,7 +35,7 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.logger.error("[{0}] {1}".format(self.socket.sessid, message))
 
     def on_ntp(self):
-        return False, time.time() * 1000
+        return [time.time() * 1000]
 
     def on_join(self, room):
         self.log('someone join the room')
@@ -62,14 +60,6 @@ class RoomNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
             #self.log(self.song_list)
             self.emit_to_room(self.room, 'songlist', msg)
             return False, data
-        #elif method == 'update':
-            #exist_song = self.song_list.get(data.get('sid'))
-            #if not exist_song:
-                #return True, 'The song does not exists in songlist'
-            #exist_song.update(data)
-            #self.log('emit_msg_to_room')
-            #self.emit_to_room(self.room, 'songlist', msg)
-            #return False, data
         elif method == 'remove':
             sid = data.get('sid')
             try:

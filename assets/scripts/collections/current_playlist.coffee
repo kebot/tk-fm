@@ -1,12 +1,12 @@
 define [
-  'collections/io',
-  'backbone',
-  'utils/iosync',
+  'collections/io'
+  'backbone'
+  'utils/iosync'
   'utils/io'
 ], (
-  IOCollection,
-  Backbone,
-  iosync,
+  IOCollection
+  Backbone
+  iosync
   io
 )->
   class Song extends Backbone.Model

@@ -87,8 +87,23 @@ define 'turkeyfm', [
       if current_playlist.length > 0
         # Remove and return the first song from collection
         current_song.clear(silent: true)
-        current_song.set current_playlist.shift().toJSON()
-        #current_song.save()
+        next_song = current_playlist.shift()
+        current_song.set next_song.toJSON()
+        next_song.destroy()
+      else
+        @moreSong()
+
+    moreSong: ->
+      channel.fetch success: ->
+        # @TODO for future, will stop this, channel will always
+        # auto-refresh, when the play-list is empty, every-user will
+        # choose one song and add to the playlist.
+        channel.each (model)->
+          model.set('creater', current_user.get('device_id'))
+          current_playlist.create model.toJSON()
+        if _.isUndefined(current_song.id)
+          # current_song is not playing
+          current_playlist.trigger('reset')
 
     joinroom: ->
       io.emit 'join', 'default_room', (resp)=>
@@ -96,17 +111,7 @@ define 'turkeyfm', [
         current_song.set(resp.current_song)
         current_playlist.reset(resp.song_list)
         if current_playlist.size() == 0
-          channel.fetch success: ->
-            # @TODO for future, will stop this, channel will always
-            # auto-refresh, when the play-list is empty, every-user will
-            # choose one song and add to the playlist.
-            channel.each (model)->
-              model.set('creater', current_user.get('device_id'))
-              current_playlist.create model.toJSON()
-            if _.isUndefined(current_song.id)
-              # current_song is not playing
-              current_playlist.trigger('reset')
-
+          @moreSong()
 
     rock: ->
       #@initPlayer()
@@ -123,6 +128,7 @@ define 'turkeyfm', [
       io.on 'connect', @joinroom
       if io.socket.connected
         @joinroom()
+
 
 show_login = ->
   require [
