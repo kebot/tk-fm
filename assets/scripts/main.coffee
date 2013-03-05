@@ -63,6 +63,7 @@ define 'turkeyfm', [
         current_song.set next_song.toJSON()
         next_song.destroy()
       else
+        current_song.clear(silent: true)
         FMClient.moreSong()
 
     joinroom: =>
