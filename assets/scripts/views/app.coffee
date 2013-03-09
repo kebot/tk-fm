@@ -1,15 +1,14 @@
 #
-# model - components | view in the model
+#
 #
 
 define [
   'underscore'
   'backbone'
-  'templates/sinfo'
+  'templates/app'
 ], (_, Backbone, render_template)->
 
   class extends Backbone.View
-
     initialize: (options)->
       if not options.model?
         @model = require 'current_song'
@@ -19,10 +18,9 @@ define [
       @model.on 'change:sid', @render, @
       @model.on 'change:position change:length', ->
         attributes = @model.serialize()
-        @$el.find('div.progress-play').css 'width': attributes.precentage
-        @$el.find('div.position').text(
+        @$el.find('div.progress-bar').css 'width': attributes.precentage
+        @$el.find('#playerposition').text(
           "#{attributes.position} / #{attributes.length}")
-        #console.log "#{attributes.position} / #{attributes.length}"
       , @
 
       if @model.get 'sid'

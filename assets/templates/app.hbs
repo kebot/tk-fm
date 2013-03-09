@@ -1,0 +1,32 @@
+<div class="top-fixed">
+  <div class="progress-container">
+    <div class="progress-bar" style="width: {{precentage}};"></div>
+  </div>
+</div>
+
+<div id="info-header">
+  <span id="username" class="username info">听临</span>
+  <a href="/logout" class="info">退出</a>
+  <span id="playerposition" class="pull-right info">{{position}} / {{length}}</span>
+</div>
+
+<div class="container">
+  <div class="row-fluid">
+    <div class="span4 offset4">
+      <div id="song-cover">
+        <img src="{{picture}}" alt="{{albumtitle}}" class="img-polaroid" />
+      </div>
+      <div class="row-fluid" id="song-info">
+        <h4 id="song-title">
+          {{title}} <small> {{artist}} - {{albumtitle}} </small>
+        </h4>
+      </div>
+      <div id="actions" class="row-fluid" >
+        <span id="rate" class="icon icon-heart"></span>
+        <span id="ban" class="icon icon-trash"></span>
+        <span id="skip" class="icon icon-skip"></span>
+      </div>
+    </div>
+  </div>
+</div>
+

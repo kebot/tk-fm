@@ -79,12 +79,12 @@ define 'turkeyfm', [
       require ['views/player'], (player)->
 
       # init the header-songinfo
-      require ['views/songinfo'], (ViewSonginfo)->
-        theview = new ViewSonginfo model: current_song
-        $('#sinfo').append theview.el
+      require ['views/app'], (AppView)->
+        theview = new AppView model: current_song
+        $('#app').html theview.el
 
-      require ['views/songlist'], (songlist)->
-        $('#main').append songlist.el
+      #require ['views/songlist'], (songlist)->
+        #$('#main').append songlist.el
 
       io.on 'connect', @joinroom
       if io.socket.connected
