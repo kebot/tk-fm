@@ -34,6 +34,13 @@ bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
 bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
 bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
 
+#bowerDefine 'gsap-timelinelite', 'src/uncompressed/TimeLineLite.js'
+#bowerDefine 'gsap-timelinemax', 'src/uncompressed/TimeLineMax.js'
+#bowerDefine 'gsap-tweenlite', 'src/uncompressed/TweenLite.js'
+#bowerDefine 'gsap-tweenmax', 'src/uncompressed/TweenMax.js'
+bowerDefine 'tweenMax', 'src/uncompressed/TweenMax.js'
+# plugins available: cssplugin, cssruleplugin, scrolltoplugin, etc...
+
 bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
 bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager
 

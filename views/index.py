@@ -13,9 +13,9 @@ def index():
 def crossdomain():
     return redirect(url_for('static', filename="crossdomain.xml"))
 
-@app.route('/playground')
-def pg():
-    return render_template('playground/animation.html')
+@app.route('/playground/<path:path>')
+def pg(path):
+    return render_template('playground/' + path + '.html')
 
 @app.before_request
 def before_req():
