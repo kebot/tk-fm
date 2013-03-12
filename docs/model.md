@@ -7,6 +7,10 @@ Common-Datastructure
       is_playing: whether the user is load audio and playing the song -- value:[1, 0]
     })
 
+    usersong-<uid>:{
+      '<sid>': 0, -1, 1
+    }
+
     room {
       admin: <uid>,
       users: [uid1, uid2, ...]
