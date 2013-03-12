@@ -14,3 +14,7 @@ app = init_redis_session(app)
 # Configure for socket.io
 import views
 
+# start the daemon
+from daemon import server
+server.run_server()
+
