@@ -1,16 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .redis_model import RedisModel
+from .redis_model import RedisModel, get_redis_client
+
 
 class Song(RedisModel):
     __prefix__ = 'song'
     id_attribute = 'sid'
 
+
 class Channel(RedisModel):
     __prefix__ = 'channel'
 
-#class SongList(RedisCollection)
+
+class UserSong():
+    __prefix__ = 'usersong'
+    LIKED = 1
+    BANED = -1
+    UNKNOW = 0
+
+    # 'usersong-<uid>'
+    def __init__(self, uid, redis_client=None):
+        self.redis_key = self.__prefix__ + '-' + str(uid)
+        if not redis_client:
+            redis_client = get_redis_client()
+        self.redis_client = redis_client
+
+
+    def get(self, sid):
+        if self.redis_client.hexists(self.redis_key, sid):
+            return self.redis_client.hget(self.redis_key, sid)
+        else:
+            return self.UNKNOW
+
+    def set(self, sid, status):
+        assert status in [self.BANED, self.LIKED, self.UNKNOW]
+        return self.redis_client.hset(self.redis_key, sid, status)
+
 
 if __name__ == '__main__':
     info = {

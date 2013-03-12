@@ -8,10 +8,8 @@ ps: in 2012, I begins writing this code. Now it's 2013! Happy New Year!
 
 from types import DictType, StringTypes
 from flask import g, json as serializer
-from redis import Redis
+from yafa.restful import get_redis as get_redis_client
 
-# in flask, you can either access the redis_client from `g.redis_client`
-redis_client = None
 
 class RedisModel(object):
     """Simple redis hash based model, inspired by Backbone.Model.
@@ -46,12 +44,7 @@ class RedisModel(object):
                 self.__prefix__ = self.__class__.__name__
 
         if not redis_client:
-            try:
-                self.redis_client = g.redis_client
-            except (RuntimeError, AttributeError):
-                # you are working outside the request context
-                # Create a new RedisClient using the default config
-                self.redis_client = Redis()
+            self.redis_client = get_redis_client()
         else:
             self.redis_client = redis_client
 
