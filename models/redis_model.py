@@ -8,10 +8,9 @@ ps: in 2012, I begins writing this code. Now it's 2013! Happy New Year!
 
 from types import DictType, StringTypes
 from flask import g, json as serializer
-from redis import Redis
+from yafa.redisdb import get_redis as get_redis_client
+import uuid
 
-# in flask, you can either access the redis_client from `g.redis_client`
-redis_client = None
 
 class RedisModel(object):
     """Simple redis hash based model, inspired by Backbone.Model.
@@ -46,17 +45,13 @@ class RedisModel(object):
                 self.__prefix__ = self.__class__.__name__
 
         if not redis_client:
-            try:
-                self.redis_client = g.redis_client
-            except (RuntimeError, AttributeError):
-                # you are working outside the request context
-                # Create a new RedisClient using the default config
-                self.redis_client = Redis()
+            self.redis_client = get_redis_client()
         else:
             self.redis_client = redis_client
 
+
     def __repr__(self):
-        return "<RedisModel(%s-%s)>" % (self.__prefix__, self.id)
+        return "<RedisModel(key=%s)>" % (self.redis_key)
 
     @property
     def redis_key(self):
@@ -67,7 +62,7 @@ class RedisModel(object):
     def fetch(self, **options):
         """Request the model's state from the redis server.
         """
-        print self.redis_key
+        #print self.redis_key
         return self.set(self.redis_client.hgetall(self.redis_key))
 
     def unpack(self, attributes):
@@ -94,12 +89,20 @@ class RedisModel(object):
             [(key, dumps(value)) for key, value in attributes.iteritems()]
         )
 
+    def _random_id(self):
+        return str(uuid.uuid1())
+
     def save(self, attributes=None, options=None):
         """Save a model to your redis-server
             @TODO: abilable options, {patch: True}
         """
         if attributes:
             self.set(attributes)
+
+        # the item is new, and not yet have a attribute
+        if self.id_attribute not in self.attributes:
+            self.set(self.id_attribute, self._random_id())
+
         value = self.pack(self.attributes)
         if value:
             return self.redis_client.hmset(self.redis_key, value)
@@ -133,19 +136,10 @@ class RedisModel(object):
 
         return self.attributes.update(update_dict)
 
-    def toJSON(self):
+    def toJSON(self, fetch=False):
+        if fetch:
+            self.fetch()
         return self.attributes
-
-
-class RedisCollection(object):
-    """
-    """
-    model = None
-    models = None
-
-    def __init__(self, models=None, **options):
-        """ """
-        self.models = [model for model in models if isinstance(models, RedisModel)]
 
 
 if __name__ == '__main__':

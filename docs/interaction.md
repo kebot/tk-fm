@@ -1,24 +1,58 @@
 # Interaction
 
-The interaction is important
+The interaction is important. Two kinds of interaction are defined here.
 
-Two kinds of interaction here.
+[skip, heart, trash]
 
-CoffeeSide:
-the `FMClient`
-  history is collection of played songs
-    @TODO also stored in the server next.
+  FMClient ->
+    skip, trash: re-request the playlist
 
-  history:[
-    {sid, action, creater},
-  ]
+  Server:
+    then -)
 
-  Channel: channel the use selected
-  
-  // methods
+    receive `skip` or `trash` action
+    wait for `10(will be defined)` seconds, if
+    vote ->
+      sid: <song_id>
+      action: <skip or 
+      trigger: {
+        'user_id': ...
+        'device_id': ...
+        other_user_info
+      }
+      voters: {
+        [
+          uid: <uid>
+          action: 1
+        ]
+      }
+      successed: 0
 
-  heart(sid);
-  trash(sid);
-  switch_channel(cid);
+  Example Info:
+    '<username> 想要切歌, 10人投票, 其中4人同意, 6人反对.'
+    -- '10秒后切歌'
+
+  --> server trigger 'next_song'
+
+[Initialize]
+
+the server try to get the room by it's uuid, `default`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

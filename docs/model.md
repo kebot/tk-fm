@@ -1,7 +1,8 @@
 # Data-structure doc
 
-Common-Datastructure
+1. room related
 
+Common-Datastructure
     user: extends(common_userinfo, {
       room: Room.id,
       is_playing: whether the user is load audio and playing the song -- value:[1, 0]
@@ -20,9 +21,11 @@ Common-Datastructure
       creater: <uid>// user who choose the song
     }
 
+
 ### Only stored in client ###
     channel, and etc.
     user-playlist , []
 
     player-history, [{song: action}, ], maxium song: 20
+
 

@@ -14,27 +14,44 @@ from yafa.restful import RestfulMixins
 from turkeyfm import app
 from turkeyfm import models
 
-from douban_hack import WebClient
+from .helper import require_api_login, require_web_login
+from douban_hack import WebClient, DoubanFMClient as APIClient
+
+from turkeyfm.daemon.worker import FavSongWorker
 
 @app.route('/account/login', methods=['POST'])
 def login():
-    client = WebClient()
+    """
+        There is two way of login:
+        1. Cookie Based Login with WebClient
+        2. API Based Login with DoubanFMClient
+
+        This method
+    """
     a = {}
     for key in ['alias', 'form_password', 'captcha_id', 'captcha_solution']:
         if request.json.has_key(key):
             a[key] = request.json[key]
         else:
             return abort(403)
+    client = WebClient()
+
     a.setdefault('remember', 'on')
     response = client.login(**a)
     if response:
         if response.get('r') == 0 and response.get('user_info'):
             session['user_info'] = response.get('user_info')
             session['cookie_info'] = client.to_dict()
-
-        return jsonify(response)
     else:
-        abort(404)
+        return abort(404)
+
+    api_client = APIClient()
+    api_response = api_client.login(a.get('alias'), a.get('form_password'))
+    login_info = api_client.get_login_info()
+    if login_info:
+        session['api_info'] = login_info
+    FavSongWorker.sent(login_info)
+    return jsonify(response)
 
 
 @app.route('/account/new_captcha')
@@ -55,11 +72,36 @@ def get_account():
         return jsonify({'r': 1, 'err': 'unauthorized'})
 
 # -- finish account -- #
+#
+# Two way login, /fm/<path:info> will proxy to http://www.douban.fm/j/
+# /j/playlist will proxy to http://www.douban.fm/
 
-@app.route('/fm/mine/playlist', methods=['GET'])
+@app.route('/radio/liked_songs')
+@require_api_login
+def liked_songs():
+    api_user_info = session['api_info']
+    print 'api_info in session', api_user_info
+    if api_user_info:
+        FavSongWorker.sent(api_user_info)
+    return '200 OK'
+
+
+@app.route('/radio/<path:info>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@require_api_login
+def proxy_api(info):
+    client = g.api_client
+    r = client.request(request.method, info,
+            params=dict(request.args or {}), data=dict(request.json or {})
+        )
+    return Response(response=r.content, status=r.status_code,
+            content_type=r.headers.get('content-type', 'application/json'))
+
+
+@app.route("/fm/mine/playlist", methods=['GET'])
+@require_web_login
 def proxy_playlist():
     info = 'mine/playlist'
-    client = WebClient(cookies=session.get('cookie_info', {}))
+    client = g.web_client
     extra = request.json or {}
     r = client.request(request.method, info, **extra)
     if r.ok:
