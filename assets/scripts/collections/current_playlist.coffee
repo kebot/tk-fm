@@ -25,7 +25,7 @@ define [
           @remove @get(msg.data.sid)
         else if msg.method == 'reset'
           @reset msg.data
-
+    url: 'songlist'
     comparator: (song)->
       song.get('weight')
 

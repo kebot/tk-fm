@@ -43,7 +43,6 @@ define 'turkeyfm', [
   class TurkeyFM
     constructor: ->
       _.extend this, Backbone.Events
-      @listenTo current_song, 'finish', @nextSong
       @listenTo current_playlist, 'reset', =>
         console.debug 'Trigger current_playlist.reset, at `main.coffee`, line76'
         if _.isUndefined(current_song.id) and current_playlist.size() > 0
@@ -54,11 +53,16 @@ define 'turkeyfm', [
           current_song.set 'report_time', time.current()
           current_song.save()
 
+      @listenTo current_song, 'finish', =>
+        if current_song.get('creater') == current_user.get('device_id')
+          io.emit 'finish', {sid: current_song.id}
+
+    # Client-Side nextsong
     nextSong: ->
       if current_playlist.length > 0
         # Remove and return the first song from collection
         next_song = current_playlist.shift()
-        console.debug 'Current_song:', current_song.id, 'Next_song:', next_song.id
+        #console.debug 'Current_song:', current_song.id, 'Next_song:', next_song.id
         current_song.clear(silent: true)
         current_song.set next_song.toJSON()
         next_song.destroy()
