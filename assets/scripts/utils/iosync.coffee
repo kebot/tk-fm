@@ -1,4 +1,5 @@
 define ['utils/io'], (io)->
+
   #!
   # * backbone.iobind - Backbone.sync replacement
   # * Copyright(c) 2011 Jake Luer <jake@alogicalparadox.com>
@@ -27,15 +28,30 @@ define ['utils/io'], (io)->
 
   @name sync
   ###
+
   sync = (method, model, options) ->
     getUrl = (object) ->
       if options and options.url
         return if _.isFunction(options.url) then options.url() else options.url
+
       return null  unless object and object.url
       (if _.isFunction(object.url) then object.url() else object.url)
 
+    method = do ->
+      if options.patch?
+        return 'patch'
+      else
+        return ({
+          'read': 'get',
+          'create': 'post',
+          'remove': 'delete',
+          'update': 'put'
+        })[method]
+
     cmd = getUrl(model).split("/")
+
     namespace = (if (cmd[0] isnt "") then cmd[0] else cmd[1])
+
     # if leading slash, ignore
     params = _.extend(
       req: namespace + ":" + method
@@ -47,6 +63,9 @@ define ['utils/io'], (io)->
       method: method
       data:   params.data
     }
+
+    if model.collection and model.id
+      params.data['_id'] = model.id
 
     # If your socket.io connection exists on a different var, change here:
     #io.emit namespace + ":" + method, params.data, (err, data) ->
