@@ -25,9 +25,32 @@ dj -> {report_time: ts, position: ta} -> broadcast ===>
 
 who report the player position. **trash**
 -----------------------------------------
+
 only *dj* for the song can report player-position, but not everyone is
 playing, someone is just listening(no player loaded, so he can not
 report the current player position).
+
+who trigger nextsong(**draft**)
+-----------------------------------------
+Event: `room.finish(sid, device_id)`
+  server:
+    if now - song.start_time > song.length
+      next_song()
+    else
+      pass
+  
+    nextsong:
+      empty = None
+      if playlist is empty
+        current_song.clear()
+      else
+        current_song.set(next_song)
+    
+    playlist.on 'not empty'
+
+  client:
+
+
 
 # Sync current_song, process user actions:
 
@@ -102,6 +125,8 @@ rooms available channel.
 the room's playlist.
 
   user actions will be use for update the playerlist.
+
+
 
 
 

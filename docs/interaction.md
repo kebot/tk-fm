@@ -1,11 +1,6 @@
 # Interaction
 
-The interaction is important
-
-Two kinds of interaction here.
-
-
-After user interaction with the app.
+The interaction is important. Two kinds of interaction are defined here.
 
 [skip, heart, trash]
 
@@ -38,5 +33,26 @@ After user interaction with the app.
     -- '10秒后切歌'
 
   --> server trigger 'next_song'
+
+[Initialize]
+
+the server try to get the room by it's uuid, `default`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
