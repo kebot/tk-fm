@@ -34,6 +34,7 @@ define 'collections/channel', [
         return _.map response.song, (song)->
           song['creater'] = current_user.get('device_id')
           return song
+
 define [
   'models/current_user'
   'models/current_song'
@@ -42,29 +43,49 @@ define [
   'collections/current_playlist'
   'backbone'
   'underscore'
-], (current_user,
-  current_song,
-  Song,
-  Channel,
-  current_playlist,
-  Backbone,
+  'jquery'
+], (current_user
+  current_song
+  Song
+  Channel
+  current_playlist
+  Backbone
   _
+  $
 )->
   PERSONAl_CHANNEL = 0
   CHINESE_CHANNEL  = 1
 
+  class HistoryItem extends Backbone.Model
+    # request with history,
+    # h=sid
+    # type: /[psbr]/
+    #   p: play
+    #   s: skip
+    #   b: ban
+    #   r: rate
+    idAttribute: 'sid'
+    __str__: -> @get('sid') + ':' + @get('type')
+
   class History extends Backbone.Collection
     initialize: ->
-    model: Song
+    model: HistoryItem
 
-  class FMClient extends Backbone.Events
+  class FMClient
     constructor: ->
+      _.extend this, Backbone.Events
       if current_user.isLogin()
         default_channel = PERSONAl_CHANNEL
       else
         default_channel = CHINESE_CHANNEL
       @history = new History()
       @channel = new Channel [], channel: default_channel
+
+      @listenTo current_song, 'rate', @on_rate
+      @listenTo current_song, 'finish', @on_finish
+
+    on_finish: =>
+      # when finish playing the song
 
     moreSong: =>
       # Pop one song from @channel to current playlist
@@ -87,12 +108,26 @@ define [
         attrs = _.pick song.toJSON(), 'sid', 'creater'
         attrs['type'] = action
 
-    rate: wrap_action('r')
-    unrate:wrap_action('u')
-    ban: wrap_action('b')
-    skip: wrap_action('s')
+    on_rate: (song)->
+      sid = song.id
+      if song.get('like')
+        base_url = 'radio/like_song'
+        type = 'r'
+      else
+        base_url = 'radio/unlike_song'
+        type = 'u'
 
-    unban: (song)->
+      $.getJSON "#{base_url}?sid=#{attrs.sid}", (response)->
+        console.log response
+
+    on_ban: (song)->
+      # ban will request a new playlist
+
+    #unrate:wrap_action('u')
+    #ban: wrap_action('b')
+    #skip: wrap_action('s')
+
+    #unban: (song)->
       # NotImplementation
       #POST: 'http://douban.fm/j/song/657758/undo_ban'
       #'ck: J3AV'
