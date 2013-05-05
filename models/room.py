@@ -52,11 +52,13 @@ class RedisPubsubMixin(object):
 
 class Song(RedisModel):
     # song related with room
+    __prefix__ = 'room-song'
+    id_attribute = 'sid'
     pass
 
 
 class Playlist(RedisCollection):
-    model = Song
+    model_class = Song
 
 
 class CurrentSong(RedisModel):

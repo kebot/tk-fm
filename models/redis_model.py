@@ -27,6 +27,7 @@ class RedisModel(object):
     id_attribute = 'id'
 
     def __init__(self, attributes=None, redis_client=None, **options):
+
         self.attributes = {}
         self.id = None
 
@@ -37,6 +38,11 @@ class RedisModel(object):
                 self.set(attributes)
         elif 'id' in options:
             self.id = options.get('id')
+
+        if 'collection' in options:
+            self.collection = options['collection']
+        else:
+            self.collection = None
 
         if not hasattr(self, '__prefix__'):
             if 'prefix' in options:
@@ -49,7 +55,6 @@ class RedisModel(object):
         else:
             self.redis_client = redis_client
 
-
     def __repr__(self):
         return "<RedisModel(key=%s)>" % (self.redis_key)
 
@@ -57,7 +62,14 @@ class RedisModel(object):
     def redis_key(self):
         """Get the redis key that store.
         """
-        return self.__prefix__ + '-' + str(self.id)
+        prefix = self.__prefix__
+        if self.collection:
+            prefix += '-' + str(self.collection.id)
+        return prefix + '-' + str(self.id)
+
+    def is_new(self):
+        """ check the redis model exists in redis server. """
+        return not self.redis_client.exists(self.redis_key)
 
     def fetch(self, **options):
         """Request the model's state from the redis server.

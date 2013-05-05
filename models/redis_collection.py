@@ -25,7 +25,7 @@ import uuid
 class RedisCollection(object):
     # List Based
     model_class = RedisModel
-    __prefix__ = ""
+    __prefix__ = "room-playlist"
 
     def __init__(self, **options):
         """docstring for __init__"""
@@ -43,6 +43,10 @@ class RedisCollection(object):
     def generate_id(self):
         return str(uuid.uuid1())
 
+    def _create_model_class(self, *args, **options):
+        options['collection'] = self
+        return self.model_class(*args, **options)
+
     @property
     def key(self):
         return self.__prefix__ + "-" + str(self.id)
@@ -53,7 +57,17 @@ class RedisCollection(object):
 
     def get(self, i):
         """ get model from a collection, specified by an `id` """
-        return self.model_class(id=i)
+        if not i:
+            return None
+        #model = self.model_class(id=i, collection=self)
+        model = self._create_model_class(id=i)
+        if model.is_new():
+            return None
+        else:
+            return model
+
+    def shift(self):
+        return self.get(self.models.pop())
 
     def remove(self, model=None, _id=None, index=None):
         if model is not None and isinstance(model, self.model_class):
@@ -73,12 +87,16 @@ class RedisCollection(object):
 
 
     def toJSON(self):
-        return [self.model_class(id=i).toJSON(fetch=True) for i in
+        return [self._create_model_class(id=i).toJSON(fetch=True) for i in
                 self.models]
                 #self.models.all()]
 
     def create(self, attributes, **options):
-        model = self.model_class(attributes)
+        print "DEBUG: Creation with attributes", attributes
+        print "DEBUG: Model Class", self.model_class
+        model = self._create_model_class(attributes)
+        print "Debug: Id attribute", model.id
+        print "Debug: RedisKey", model.redis_key
         # @TODO handle create error problem.
         model.save()
         self.models.append(model.id)

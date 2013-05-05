@@ -17,7 +17,7 @@ SONG_LIKED = 1
 SONG_BANDED = -1
 SONG_UNKNOW = 0
 
-def is_like_the_song(uid, song, status=None,redis_client=None):
+def is_like_the_song(uid, sid, status=None,redis_client=None):
     """get relationship for song and user"""
     prefix = 'user-song'
     redis_key = "%s-%s" % (prefix, str(uid))
