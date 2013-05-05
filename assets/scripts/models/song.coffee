@@ -5,6 +5,7 @@ define [
   IOModel
   time
 )->
+  # @TODO modify this to room-song idAttribute `id`: <roomid-sid>
 
   class Song extends IOModel
     idAttribute: 'sid'
@@ -12,5 +13,4 @@ define [
     serialize: -> @toJSON()
     initialize: (attributes, options)->
       @set 'weight', time.current()
-
 

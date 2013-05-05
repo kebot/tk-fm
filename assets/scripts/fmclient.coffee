@@ -90,11 +90,15 @@ define [
     moreSong: =>
       # Pop one song from @channel to current playlist
       if @channel.length > 0
+        # this is done by server-side
         current_playlist.create @channel.shift().toJSON()
+        current_song.trigger('finish')
+        ###
         if _.isUndefined(current_song.id)
           # current_song is not playing
           console.debug 'add song to playlist && no current_song, triger reset'
           current_playlist.trigger('reset')
+        ###
       else
         @channel.fetch success: =>
           @moreSong()

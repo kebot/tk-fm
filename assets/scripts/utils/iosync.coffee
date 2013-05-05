@@ -30,6 +30,7 @@ define ['utils/io'], (io)->
   ###
 
   sync = (method, model, options) ->
+    console.debug method, model, options
     getUrl = (object) ->
       if options and options.url
         return if _.isFunction(options.url) then options.url() else options.url
