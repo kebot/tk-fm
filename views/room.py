@@ -10,36 +10,102 @@ from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin
 
 from yafa.redisdb import get_redis
-from yafa.redisdb.types import RedisSet
+from yafa.redisdb.types import RedisSet, RedisHash
 
 from turkeyfm import app
 from turkeyfm.models.song import UserSong
 from .mixins import RedisPubsubMixin
-from turkeyfm.models.room import CurrentSong, Playlist
+from turkeyfm.models.room import Playlist, CurrentSong as ModelCurrentSong
+from turkeyfm.models.redis_model import RedisModel
+
+from turkeyfm.models.user import uid_from_session
+from turkeyfm.models.song import is_like_the_song
+
+"""
+class CurrentSong(object):
+    # device id / currentsong
+    # relationship between currentsong / current device
+    # "key=current_song_status-<rid>"
+    #   { device_id: <status>, ...}
+
+    def initialize(self, **options):
+        self.device_id = options.get('device_id', None)
+
+    # hash -> first play, first finish.
+    def status_key(self):
+        return self.__prefix__ + '-status'
+
+    status_unknow = 0
+    status_playing = 1
+    status_waitting = -1 # waitting for loading, buffering, etc..
+"""
 
 
-class RoomStore(object):
-    def __init__(self, rid):
-        self.devices = RedisSet(key='room-devices-' + str(rid))
-        self.current_song = CurrentSong(id=rid)
-        self.song_list = CurrentSong(id=rid)
+class _RoomController(object):
+    # for easy scaling, it will be use for routing.
+    # for example: which instance should i use for the room xxxxx
 
     _instances = {}
-    @staticmethod
-    def get(rid):
-        result = RoomStore._instances.get('rid')
-        if not result:
-            result = RoomStore(rid)
-        return result
 
-    def join(self, device_id):
-        self.devices.add(device_id)
+    def __init__(self, rid):
+        self.rid = rid
+        self.current_song = ModelCurrentSong(id = rid)
+        self.song_list = Playlist(id = rid)
+        self.device_ns = set()
 
-    def leave(self, device_id):
-        self.devices.remove(device_id)
+    def get_init_data(self):
+        return dict(current_song=self.current_song.toJSON(),
+                song_list=self.song_list.toJSON())
+
+    def get_current_song(self):
+        pass
+
+    def get_playlist(self, limit):
+        pass
 
 
-class RoomNamespace(BaseNamespace, RoomsMixin):
+    # room related methods
+    def join(self, dev):
+        #print "<rid-%s with %i devices>" % (self.rid, len(self.device_ns) + 1)
+        return self.device_ns.add(dev)
+
+    def leave(self, dev):
+        #print "<rid-%s with %i devices>" % (self.rid, len(self.device_ns) - 1)
+        return self.device_ns.remove(dev)
+
+    def post_message(self, event, *args, **options):
+        """@todo: Docstring for post_message
+        :event: event body
+        :*args: argument of a event
+        :**options: if except is given, the except sockets will be skipped.
+        :returns: None
+        """
+        if 'except' in options:
+            if type(options.get('except')) is list:
+                excepts = [options.get('except')]
+            else:
+                excepts = options.get('except')
+
+        pkt = dict(type="event",
+                   name=event,
+                   args=args,
+                   endpoint=self.ns_name)
+
+        return [dev.socket.send_packet(pkt) for dev in self.device_ns
+                if dev not in excepts]
+
+
+def get_room(rid):
+    ro_m = _RoomController._instances.get(rid)
+    if not ro_m:
+        ro_m = _RoomController(rid=rid)
+        _RoomController._instances.__setitem__(rid, ro_m)
+    return ro_m
+
+# helper methods
+
+
+class RoomNamespace(BaseNamespace):
 
     def initialize(self):
         # Support a better logger
@@ -58,27 +124,28 @@ class RoomNamespace(BaseNamespace, RoomsMixin):
         return [time.time() * 1000]
 
     def on_join(self, room):
-        self.log('someone join the room')
-        self.room = room
-        assert type(room) in types.StringTypes
-        self.join(room)
+        self.room = get_room(room)
+        self.room.join(self)
+        return self.room.get_init_data()
 
-        self.current_song = CurrentSong(id = room)
-        self.song_list = Playlist(id = room)
+    def disconnect(self, silent=True):
+        print 'force disconnect'
+        self._leave_room()
+        return super(RoomNamespace, self).disconnect(silent)
 
-        init_data = dict(current_song=self.current_song.toJSON(),
-                song_list=self.song_list.toJSON())
-        return [init_data]
+    def _leave_room(self):
+        if self.room:
+            self.room.leave(self)
 
+    def revc_disconnect(self):
+        return self._leave_room()
+
+    def on_leave(self, room):
+        return get_room(room).leave(self)
 
     def on_finish(self, msg):
         # // user finish playing `current_song`
-        # // 
-
         pass
-
-    def publish(self, event, msg):
-        return self.emit_to_room(self.room, event, msg)
 
     def on_songlist(self, msg):
         data = msg.get('data')
@@ -111,53 +178,24 @@ class RoomNamespace(BaseNamespace, RoomsMixin):
             return self.song_list.remove(_id=_id)
 
 
-    def _on_songlist(self, msg):
-        method = msg.get('method')
-        data = msg.get('data')
-        if method == 'read':
-            return True, self.song_list
-        elif method == 'create' or method == 'update':
-            exist_song = self.song_list.get(data.get('sid'))
-            if exist_song:
-                exist_song.update(data)
-            else:
-                self.song_list.add(data)
-            #self.log(self.song_list)
-            self.emit_to_room(self.room, 'songlist', msg)
-            return False, data
-        elif method == 'delete' or method == 'remove':
-            sid = data.get('sid')
-            try:
-                self.song_list.remove(self.song_list.get(sid))
-                self.emit_to_room(self.room, 'songlist', msg)
-            except ValueError:
-                self.error("%i is not in songlist" % sid)
-            return [False]
-        else:
-            return True, {}
-
-
     def on_current_song(self, msg):
-        def is_like(sid):
-            is_like = False
-            info = self.web_session.get('user_info', None)
-            if info:
-                uid = info.get('user_id')
-                if uid:
-                    user_song = UserSong(uid)
-                    is_like = user_song.get(sid)
-            return is_like
+
+        uid = uid_from_session(self.web_session)
 
         method = msg.get('method')
         data = msg.get('data')
 
         if data.get('sid') != self.current_song.get('sid'):
-            #self.current_song.clear()
-            self.current_song.destroy()
-
-        attributes = msg.get('data')
+            # hey man, current song is outdated.
+            # you will be notify for change song!
+            pass
+        # data.get('sid') is current_song
         self.current_song.save(attributes)
-        song_dict = dict(self.current_song.toJSON(), like=is_like(self.current_song.get('sid')))
+
+        song_dict = dict(self.current_song.toJSON(), like=is_like_the_song(
+                uid=uid,
+                song=self.current_song.get('sid'),
+            ))
         self.publish('current_song', song_dict)
 
     def recv_disconnect(self):

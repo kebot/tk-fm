@@ -13,6 +13,28 @@ class Channel(RedisModel):
     __prefix__ = 'channel'
 
 
+SONG_LIKED = 1
+SONG_BANDED = -1
+SONG_UNKNOW = 0
+
+def is_like_the_song(uid, song, status=None,redis_client=None):
+    """get relationship for song and user"""
+    prefix = 'user-song'
+    redis_key = "%s-%s" % (prefix, str(uid))
+    if not redis_client:
+        redis_client = get_redis_client()
+
+    if status is None:
+        if redis_client.hexists(redis_key, sid):
+            return redis_client.hget(redis_key, sid)
+        else:
+            return SONG_UNKNOW
+    else:
+        if status in [SONG_BANED, SONG_LIKED, SONG_UNKNOW]:
+            return redis_client.hset(redis_key, sid, status)
+
+
+# the new relationship api will be instead whis class
 class UserSong():
     __prefix__ = 'usersong'
     LIKED = 1

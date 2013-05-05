@@ -84,6 +84,9 @@ class RedisCollection(object):
         self.models.append(model.id)
         return model
 
+    def length(self):
+        return self.models.length()
+
     def __iter__(self):
         for key in self.models:
             yield self.model(key=key)
