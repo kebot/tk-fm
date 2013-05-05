@@ -15,6 +15,6 @@ app = init_redis_session(app)
 import views
 
 # start the daemon
-from daemon import server
-server.run_server()
+#from daemon import server
+#server.run_server()
 
