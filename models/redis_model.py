@@ -74,16 +74,23 @@ class RedisModel(object):
     def fetch(self, **options):
         """Request the model's state from the redis server.
         """
-        #print self.redis_key
-        return self.set(self.redis_client.hgetall(self.redis_key))
+        return self.set(self.unpack(self.redis_client.hgetall(self.redis_key)))
 
     def unpack(self, attributes):
         """unpack the value from redis
         """
+        #print "Model: Unpack", attributes
         def loads(value):
+            value_type = type(value)
             if type(value) == DictType:
                 return value
-            serializer.loads(value)
+            try:
+                return serializer.loads(value)
+            except ValueError, e:
+                if value_type in StringTypes:
+                    return value
+                else:
+                    raise e
 
         return dict(
             [(key, loads(value)) for key, value in attributes.iteritems()]
@@ -105,17 +112,20 @@ class RedisModel(object):
         return str(uuid.uuid1())
 
     def save(self, attributes=None, options=None):
-        """Save a model to your redis-server
-            @TODO: abilable options, {patch: True}
+        """Save a model to your redis-server.
+        If attribute is given, only the given attributes will be save.
+
+            @todo: add a changed hash
+            @todo: abilable options, {patch: True}
         """
         if attributes:
             self.set(attributes)
-
-        # the item is new, and not yet have a attribute
-        if self.id_attribute not in self.attributes:
-            self.set(self.id_attribute, self._random_id())
-
-        value = self.pack(self.attributes)
+        else:
+            attributes = self.attributes
+        # the item is new, and not yet have a id attribute, will in create function
+        #if self.id_attribute not in attributes:
+            #self.set(self.id_attribute, self._random_id())
+        value = self.pack(attributes)
         if value:
             return self.redis_client.hmset(self.redis_key, value)
         else:
@@ -136,10 +146,14 @@ class RedisModel(object):
 >>> model.set({'key': 'value'})
 >>> model.set(key="value")
         """
-        update_dict = {}
         if type(name) == DictType:
-            update_dict.update(name)
-        update_dict.update(kwargs)
+            update_dict = name
+        else:
+            update_dict = {}
+
+        if kwargs:
+            update_dict.update(kwargs)
+
         if type(name) in StringTypes and type(value) in StringTypes:
             update_dict.update({name: value})
 
@@ -149,7 +163,8 @@ class RedisModel(object):
         return self.attributes.update(update_dict)
 
     def toJSON(self, fetch=False):
-        if fetch:
+        if fetch or self.attributes == {}:
+            #print 'RedisModel: Fetch model with key', self.redis_key
             self.fetch()
         return self.attributes
 

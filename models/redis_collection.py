@@ -92,12 +92,12 @@ class RedisCollection(object):
                 #self.models.all()]
 
     def create(self, attributes, **options):
-        print "DEBUG: Creation with attributes", attributes
-        print "DEBUG: Model Class", self.model_class
-        model = self._create_model_class(attributes)
-        print "Debug: Id attribute", model.id
-        print "Debug: RedisKey", model.redis_key
         # @TODO handle create error problem.
+        #print "DEBUG: Create with attributes", attributes
+        #print "DEBUG: Model Class", self.model_class
+        model = self._create_model_class(attributes)
+        #print "Debug: Id attribute", model.id
+        #print "Debug: RedisKey", model.redis_key
         model.save()
         self.models.append(model.id)
         return model
