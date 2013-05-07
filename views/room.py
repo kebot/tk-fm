@@ -68,13 +68,14 @@ class _RoomController(object):
         # actually skip the current_song
         # toggle to nextsong
         if self.current_song.is_new():
-            self.current_song.set('finsh_play_time', time.time() * 1000)
+            self.current_song.save({'finsh_play_time': time.time() * 1000})
 
         if self.song_list.length() > 0:
             next_song = self.song_list.shift()
             if next_song:
                 self.current_song = next_song
-                self.publish('current_song', self.current_song.toJSON())
+                msg = self.current_song.toJSON()
+                self.publish('current_song', msg)
         else:
             logger.debug('playlist is empty')
 
@@ -92,13 +93,21 @@ class _RoomController(object):
                 return self.nextsong()
         pass
 
-    def begin_playing(self, dev):
+    def begin_playing(self, dev, msg):
+        _ud = {}
+        for key in ['report_time', 'position']:
+            if msg.has_key(key):
+                _ud[key] = msg[key]
+            else:
+                print key, 'is not set in message'
+                return False
         dev.playing_status = self.s_playing
-        # who is reporter
+        self.current_song.save(_ud)
+        #print self.current_song.toJSON()
+
         if not self.current_song.get('report_time'):
+            self.publish('current_song', _ud)
             pass
-            #self.current_song.save({
-            #})
 
     # room related methods
     def join(self, dev):
@@ -167,33 +176,24 @@ class RoomNamespace(BaseNamespace):
 
     def on_join(self, room):
         # @TODO for test use, remove this two line
-        import uuid
-        room = str(uuid.uuid1())
+        #import uuid
+        #room = str(uuid.uuid1())
 
         self.room = get_room(room)
         self.room.join(self)
         return self.room.get_init_data()
 
     def disconnect(self, silent=True):
-        self._leave_room()
+        self.room.leave(self)
         return super(RoomNamespace, self).disconnect(silent)
 
-    def _leave_room(self):
-        if self.room:
-            self.room.leave(self)
-
     def revc_disconnect(self):
-        return self._leave_room()
+        return self.disconnect(silent=True)
 
-    def on_leave(self, room):
-        return get_room(room).leave(self)
-
-    def on_finish(self, msg):
-        # // user finish playing `current_song`
-        pass
+    #def on_leave(self, room):
+        #return get_room(room).leave(self)
 
     def on_songlist(self, msg):
-        #print msg
         song_list = self.room.song_list
         data = msg.get('data')
         method = (msg.get('method') or 'get').upper()
@@ -206,6 +206,7 @@ class RoomNamespace(BaseNamespace):
                 return song_list.get(_id).toJSON()
             else:
                 return song_list.toJSON()
+
         # post untest
         elif method in ['POST', 'PUT', 'PATCH']:
             model = song_list.get(_id)
@@ -213,12 +214,19 @@ class RoomNamespace(BaseNamespace):
                 #print "Model", model  ,"exists with id, ", model.id
                 # "this is patch/put"
                 # currently, modify will be skipped, not supported!
+                #print "Songlist: Model already exists", msg
                 return [True]
             else:
-                #print '-------------------------------create one'
+                #print "Songlist: create one for message", msg
                 model = song_list.create(msg.get('data'))
+                # vaildate code here
+
                 msg['data'] = model.toJSON()
+
                 self.room.publish(channel, msg)
+
+                #print "Songlist.__length__() == ", song_list.length()
+
                 return [True]
 
         elif method == 'DELETE':
@@ -227,6 +235,7 @@ class RoomNamespace(BaseNamespace):
 
 
     def on_current_song(self, msg):
+        print msg
 
         uid = uid_from_session(self.web_session)
 
@@ -244,11 +253,12 @@ class RoomNamespace(BaseNamespace):
 
         if data.get('finish') == True:
             # hey man, i'm finish playing the song, please deal with me!
+            #print 'CurrentSong:', msg
             self.room.finish_playing(self)
             return [True]
 
         if data.get('begin') == True:
-            self.room.begin_playing(self)
+            self.room.begin_playing(self, msg)
             return [True]
 
         # data.get('sid') is current_song
@@ -261,14 +271,4 @@ class RoomNamespace(BaseNamespace):
 
         self.room.publish('current_song', song_dict)
 
-    def recv_disconnect(self):
-        self.log('Disconnected')
-        self.disconnect(silent=True)
-        return True
-
-    def on_user_message(self, msg):
-        self.log('User message: {0}'.format(msg))
-        self.emit_to_room(self.room, 'msg_to_room',
-            self.session['nickname'], msg)
-        return True
 
