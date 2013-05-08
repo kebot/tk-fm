@@ -1,5 +1,4 @@
 ###
-
       The TurkeyFM Project
     Copyright (C) 2013 Keith Yao
 Permission is hereby granted, free of charge, to any person obtaining
@@ -50,17 +49,21 @@ define 'turkeyfm', [
           #this.nextSong()
 
       @listenTo current_song, 'play', =>
-        current_song.set({
-          'start': true,
-          'report_time': time.current()
-        })
-        current_song.save()
-        # updated
-        #if current_song.get('creater') == current_user.get('device_id')
-          #current_song.set 'report_time', time.current()
+        current_song.save(
+          _.extend(
+            {'start': true, 'report_time': time.current()},
+            current_song.pick('position'))
+          , {patch: true})
+
+      # @todo, add a event when position is changed(stopped, fast-forwarded,
+      #     or somethingelse
+
 
       @listenTo current_song, 'finish', =>
-        current_song.save({'finish': true}, {patch: true})
+        current_song.save({
+          'finish': true,
+          'sid': current_song.id
+        }, {patch: true})
 
         #if current_song.get('creater') == current_user.get('device_id')
           #io.emit 'finish', {sid: current_song.id}
@@ -81,7 +84,7 @@ define 'turkeyfm', [
     joinroom: =>
       io.emit 'join', 'default_room', (resp)=>
         current_song.clear({silent: true})
-        current_song.set(resp.current_song)
+        current_song.set(resp.current_song, {silent: true})
         current_playlist.reset(resp.song_list)
         if current_playlist.size() == 0
           FMClient.moreSong()
