@@ -30,7 +30,6 @@ define ['utils/io'], (io)->
   ###
 
   sync = (method, model, options) ->
-    console.debug method, model, options
     getUrl = (object) ->
       if options and options.url
         return if _.isFunction(options.url) then options.url() else options.url
@@ -47,30 +46,27 @@ define ['utils/io'], (io)->
           'create': 'post',
           'remove': 'delete',
           'update': 'put'
+          'patch': 'patch'
         })[method]
 
     cmd = getUrl(model).split("/")
 
     namespace = (if (cmd[0] isnt "") then cmd[0] else cmd[1])
 
-    # if leading slash, ignore
-    params = _.extend(
-      req: namespace + ":" + method
-    , options)
-
-    params.data = model.toJSON() or {} if not params.data and model
-
-    params.data = {
+    io.emit namespace,{
       method: method
-      data:   params.data
-    }
-
-    if model.collection and model.id
-      params.data['_id'] = model.id
-
-    # If your socket.io connection exists on a different var, change here:
-    #io.emit namespace + ":" + method, params.data, (err, data) ->
-    io.emit namespace, params.data, (err, data) ->
+      data: _.extend(do ->
+        if not options.attrs and model
+          return model.toJSON()
+        else
+          return options.attrs or {}
+      , do ->
+        if model.collection and model.id
+          return {'_id': model.id}
+        else
+          return {}
+      )
+    }, (err, data)->
       if err
         options.error? err
       else
