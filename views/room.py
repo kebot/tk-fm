@@ -73,9 +73,13 @@ class _RoomController(object):
         if self.song_list.length() > 0:
             next_song = self.song_list.shift()
             if next_song:
-                self.current_song = next_song
                 msg = self.current_song.toJSON()
                 self.publish('current_song', msg)
+                self.publish('songlist', {
+                    'method': 'delete',
+                    'data': {'sid': self.current_song.id}
+                })
+                self.current_song = next_song
         else:
             logger.debug('playlist is empty')
 
@@ -235,7 +239,6 @@ class RoomNamespace(BaseNamespace):
 
 
     def on_current_song(self, msg):
-        print msg
 
         uid = uid_from_session(self.web_session)
 
