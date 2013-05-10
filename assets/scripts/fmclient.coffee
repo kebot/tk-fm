@@ -84,7 +84,14 @@ define [
       @listenTo current_song, 'rate', @on_rate
       @listenTo current_song, 'finish', @on_finish
 
+      @listenTo current_playlist, 'reset remove', =>
+        if current_playlist.length > 0
+          return true
+        @moreSong()
+        console.debug "Song in current_playlist:", current_playlist.toJSON()
+
     on_finish: =>
+      console.debug "Finish playing the song -- ", current_song.toJSON()
       # when finish playing the song
 
     moreSong: =>
@@ -137,5 +144,4 @@ define [
       #'ck: J3AV'
 
   return new FMClient()
-
 
