@@ -21,28 +21,6 @@ from turkeyfm.models.song import is_like_the_song
 import logging
 logger = logging.getLogger('room')
 
-
-
-"""
-class CurrentSong(object):
-    # device id / currentsong
-    # relationship between currentsong / current device
-    # "key=current_song_status-<rid>"
-    #   { device_id: <status>, ...}
-
-    def initialize(self, **options):
-        self.device_id = options.get('device_id', None)
-
-    # hash -> first play, first finish.
-    def status_key(self):
-        return self.__prefix__ + '-status'
-
-    status_unknow = 0
-    status_playing = 1
-    status_waitting = -1 # waitting for loading, buffering, etc..
-"""
-
-
 class _RoomController(object):
     # for easy scaling, it will be use for routing.
     # for example: which instance should i use for the room xxxxx
@@ -59,6 +37,7 @@ class _RoomController(object):
         self.song_list = Playlist(id = rid)
         self.device_ns = set()
         self.ns_name = None
+        logger.debug("Create global room: %s", rid)
 
     def get_init_data(self):
         return [dict(current_song=self.current_song.toJSON(),
@@ -85,14 +64,17 @@ class _RoomController(object):
 
     def finish_playing(self, dev):
         if self.current_song.id == None:
-            logger.debug('no current_song set')
+            logger.debug('no current_song set, nextsong.')
             return self.nextsong()
         else:
             dev.playing_status = self.s_finish
             list_status = [dev.playing_status for dev in self.device_ns if
                     dev.playing_status != self.s_unknow]
+            logger.debug(str(list_status))
+
             def can_skip(list_status):
                 return 2 * list_status.count(self.s_finish) - len(list_status) >= 0
+
             if can_skip(list_status):
                 return self.nextsong()
         pass
@@ -163,8 +145,9 @@ def get_room(rid):
 class RoomNamespace(BaseNamespace):
 
     def initialize(self):
+        # #todo add logger for every room
         # Support a better logger
-        self.logger = app.logger
+        self.logger = logger
         self.web_session = self.request or {}
 
     # // helper methods
@@ -215,22 +198,12 @@ class RoomNamespace(BaseNamespace):
         elif method in ['POST', 'PUT', 'PATCH']:
             model = song_list.get(_id)
             if model:
-                #print "Model", model  ,"exists with id, ", model.id
-                # "this is patch/put"
-                # currently, modify will be skipped, not supported!
-                #print "Songlist: Model already exists", msg
                 return [True]
             else:
-                #print "Songlist: create one for message", msg
                 model = song_list.create(msg.get('data'))
-                # vaildate code here
-
                 msg['data'] = model.toJSON()
-
                 self.room.publish(channel, msg)
-
-                #print "Songlist.__length__() == ", song_list.length()
-
+                self.log("song_list: +<sid:%s>" % str(model.id))
                 return [True]
 
         elif method == 'DELETE':
@@ -257,10 +230,12 @@ class RoomNamespace(BaseNamespace):
         if data.get('finish') == True:
             # hey man, i'm finish playing the song, please deal with me!
             #print 'CurrentSong:', msg
+            self.log('c:finish')
             self.room.finish_playing(self)
             return [True]
 
         if data.get('begin') == True:
+            self.log('c:begin')
             self.room.begin_playing(self, msg)
             return [True]
 
@@ -273,5 +248,4 @@ class RoomNamespace(BaseNamespace):
             ))
 
         self.room.publish('current_song', song_dict)
-
 
