@@ -8,6 +8,14 @@ class Song(RedisModel):
     __prefix__ = 'song'
     id_attribute = 'sid'
 
+    @staticmethod
+    def parse(attributes, **options):
+        """ parse attributes from server """
+        length = attributes.get('length')
+        if length:
+            attributes.__setitem__('length', length * 1000)
+        return attributes
+
 
 class Channel(RedisModel):
     __prefix__ = 'channel'

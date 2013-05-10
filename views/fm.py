@@ -104,16 +104,23 @@ def proxy_playlist():
     client = g.web_client
     extra = request.json or {}
     r = client.request(request.method, info, **extra)
-    if r.ok:
-        json = r.json()
-        if json['r'] == 0:
-            for song in json['song']:
-                r_song = models.Song(song)
-                r_song.save()
-        return Response(response=r.content, status=r.status_code,
-                content_type=r.headers.get('content-type', 'application/json'))
-    else:
+
+    if not r.ok:
         return abort(404)
+
+    response = r.json()
+
+    if response['r'] == 0:
+        def parse_song(attrs):
+            r_song = models.Song(models.Song.parse(attrs))
+            r_song.save()
+            return r_song.toJSON()
+        response['song'] = [parse_song(attrs) for attrs in response['song']]
+
+    return jsonify(response)
+
+    #return Response(response=r.content, status=r.status_code,
+            #content_type=r.headers.get('content-type', 'application/json'))
 
 
 @app.route('/fm/<path:info>', methods=['GET', 'POST', 'PUT', 'DELETE'])
