@@ -13,7 +13,7 @@ import uuid
 
 """
     `key`: room-songlist-<rid>: [1, 2, 3, 4, 5]
-    `item_class`: whatever
+    `model_class`: whatever
 
     available redis datastructures:
         hash - {}

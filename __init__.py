@@ -1,5 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#
+#   __  /_   _  ___
+#   (  /) . /- / / )
+#
+
+"""
+tk.fm - music in the sky
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+"""
+
+
 from gevent import monkey; monkey.patch_all()
 
 import flask

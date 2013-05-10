@@ -13,6 +13,7 @@ define 'utils/io', [
   return ns
 
 # @TODO unuseful below
+###
 define 'utils/io-init', [
   'finish'
   'utils/io'
@@ -29,5 +30,5 @@ define 'utils/io-init', [
     current_song.reset(data.current_song)
     current_playlist.reset(data.song_list)
     finish ns
-
+###
 

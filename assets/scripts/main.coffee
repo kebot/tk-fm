@@ -1,6 +1,9 @@
 ###
-      The TurkeyFM Project
+#   __  /_   _  ___
+#   (  /) . /- / / )
+#
     Copyright (C) 2013 Keith Yao
+
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
 to deal in the Software without restriction, including without limitation
@@ -43,20 +46,12 @@ define 'turkeyfm', [
     constructor: ->
       _.extend this, Backbone.Events
 
-      #@listenTo current_playlist, 'reset', =>
-        #console.debug 'Trigger current_playlist.reset, at `main.coffee`, line76'
-        #if _.isUndefined(current_song.id) and current_playlist.size() > 0
-          #this.nextSong()
-
       @listenTo current_song, 'play', =>
         current_song.save(
           _.extend(
             {'start': true, 'report_time': time.current()},
             current_song.pick('position'))
           , {patch: true})
-
-      # @todo, add a event when position is changed(stopped, fast-forwarded,
-      #     or somethingelse
 
 
       @listenTo current_song, 'finish', =>
@@ -65,8 +60,6 @@ define 'turkeyfm', [
           'sid': current_song.id
         }, {patch: true})
 
-        #if current_song.get('creater') == current_user.get('device_id')
-          #io.emit 'finish', {sid: current_song.id}
 
     # Client-Side nextsong, this will be removed
     nextSong: -> console.error 'nextSong is only implemented in server-side.'
