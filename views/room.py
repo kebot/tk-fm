@@ -68,6 +68,11 @@ class _RoomController(object):
     def finish_playing(self, dev, **options):
         target_sid = options.get('sid')
 
+        # it will always be skipped if serverside has nothing to play.
+        if not self.current_song.id:
+            logger.debug('no current_song set, nextsong.')
+            return self.nextsong()
+
         if target_sid != self.current_song.id:
             logger.debug("Client current_song is %s, but in server is %s, skipped",
                     target_sid, self.current_song.id)
@@ -77,19 +82,15 @@ class _RoomController(object):
             logger.debug("hey, you have reported you have finish song(%s), don't be harry.", target_sid)
             return
 
-        if not self.current_song.id:
-            logger.debug('no current_song set, nextsong.')
-            return self.nextsong()
-        else:
-            dev.playing_status = self.s_finish
-            list_status = [dev.playing_status for dev in self.device_ns if
-                    dev.playing_status != self.s_unknow]
-            logger.debug(str(list_status))
-            def can_skip(list_status):
-                return 2 * list_status.count(self.s_finish) - len(list_status) >= 0
+        dev.playing_status = self.s_finish
+        list_status = [dev.playing_status for dev in self.device_ns if
+                dev.playing_status != self.s_unknow]
+        logger.debug(str(list_status))
+        def can_skip(list_status):
+            return 2 * list_status.count(self.s_finish) - len(list_status) >= 0
 
-            if can_skip(list_status):
-                return self.nextsong()
+        if can_skip(list_status):
+            return self.nextsong()
         pass
 
     def begin_playing(self, dev, msg):
