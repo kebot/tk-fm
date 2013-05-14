@@ -22,7 +22,7 @@ define [
         if msg.method == 'create'
           @add msg.data
         else if msg.method == 'delete'
-          @remove @get({id: msg.data.sid})
+          @remove msg.data.sid
         else if msg.method == 'reset'
           @reset msg.data
     url: 'songlist'

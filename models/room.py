@@ -11,7 +11,9 @@ import logging
 import uuid
 import types
 
-logger = logging.getLogger('redis')
+logger = logging.getLogger('room')
+
+from .song import Song
 
 class RedisPubsubMixin(object):
     """ this module defines some event passing for redis-based datatypes with pubsub
@@ -26,7 +28,6 @@ class RedisPubsubMixin(object):
             return [self.listen(cnl) for cnl in channels]
 
     """
-
     def listen(self, event, callback=None):
         if callback is None:
             callback = 'on-' + self.event
@@ -50,19 +51,9 @@ class RedisPubsubMixin(object):
         pass
 
 
-class Song(RedisModel):
-    # song related with room
-    __prefix__ = 'room-song'
-    id_attribute = 'sid'
-    pass
 
-
-class Playlist(RedisCollection):
-    model_class = Song
-
-
-class CurrentSong(RedisModel):
-    """ hash proxy to Dictionary
+class SongItem(RedisModel):
+    """
 .. attributes
         sid: <sid>
         creater: <uid> // who add this song to the playlist
@@ -74,12 +65,21 @@ other attributes for the song is copy from key="song-<sid>"
 ```
     """
     __prefix__ = 'room-currentsong'
+    id_attribute = 'sid'
 
-    #@property
-    #def redis_key(self):
-        #return self.__prefix__ + '-' + str(self.get('id'))
+    extend_class = Song
 
+    def toJSON(self, *args, **kwargs):
+        song_attrs = Song(id=self.id).toJSON(fetch=True)
+        extra_attrs = RedisModel.toJSON(self, *args, **kwargs)
+        #logger.debug("SongItem->toJSON():self.id: {0} \n song_attrs: {1} \n extra_attrs: {2}".format(self.id, song_attrs, extra_attrs))
+        song_attrs.update(extra_attrs)
+        return song_attrs
     pass
+
+
+class Playlist(RedisCollection):
+    model_class = SongItem
 
 
 class Room(RedisModel):

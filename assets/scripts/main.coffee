@@ -46,13 +46,13 @@ define 'turkeyfm', [
     constructor: ->
       _.extend this, Backbone.Events
 
+    startListening: ->
       @listenTo current_song, 'play', =>
         current_song.save(
           _.extend(
             {'start': true, 'report_time': time.current()},
             current_song.pick('position'))
           , {patch: true})
-
 
       @listenTo current_song, 'finish', =>
         current_song.save({
@@ -61,26 +61,23 @@ define 'turkeyfm', [
         }, {patch: true})
 
 
-    # Client-Side nextsong, this will be removed
-    nextSong: -> console.error 'nextSong is only implemented in server-side.'
-    _nextSong: ->
-      if current_playlist.length > 0
-        # Remove and return the first song from collection
-        next_song = current_playlist.shift()
-        current_song.clear(silent: true)
-        current_song.set next_song.toJSON()
-        next_song.destroy()
-      else
-        current_song.clear(silent: true)
-        FMClient.moreSong()
-
     joinroom: =>
       io.emit 'join', 'default_room', (resp)=>
+        @startListening()
+
+        if _.isEmpty(resp.song_list)
+          # add more song to songlist
+          return FMClient.moreSong()
+
+        if _.isEmpty(resp.current_song)
+          return current_song.trigger('finish')
+
         current_song.clear({silent: true})
-        current_song.set(resp.current_song, {silent: true})
+        current_song.set(
+          resp.current_song,
+          {silent: true}
+        )
         current_playlist.reset(resp.song_list)
-        if current_playlist.size() == 0
-          FMClient.moreSong()
 
     rock: ->
       #@initPlayer()

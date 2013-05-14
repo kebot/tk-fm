@@ -95,17 +95,11 @@ define [
       # when finish playing the song
 
     moreSong: =>
-      # Pop one song from @channel to current playlist
+      # get more song from fm api.
       if @channel.length > 0
-        # this is done by server-side
         current_playlist.create @channel.shift().toJSON()
-        current_song.trigger('finish')
-        ###
-        if _.isUndefined(current_song.id)
-          # current_song is not playing
-          console.debug 'add song to playlist && no current_song, triger reset'
-          current_playlist.trigger('reset')
-        ###
+        if current_song.isNew() or current_song.get('finish')
+          current_song.trigger('finish')
       else
         @channel.fetch success: =>
           @moreSong()

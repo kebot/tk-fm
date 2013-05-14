@@ -20,7 +20,7 @@ define [
         # )
         if not _.isUndefined(msg[@idAttribute]) and msg[@idAttribute] != @id
           @clear silent: true
-        @set msg, silent: true
+        @set msg
 
     serialize: ->
       attributes = @toJSON()

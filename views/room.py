@@ -12,7 +12,7 @@ from yafa.redisdb.types import RedisSet, RedisHash
 from turkeyfm import app
 from turkeyfm.models.song import UserSong
 from .mixins import RedisPubsubMixin
-from turkeyfm.models.room import Playlist, CurrentSong as ModelCurrentSong
+from turkeyfm.models.room import Playlist, SongItem
 from turkeyfm.models.redis_model import RedisModel
 
 from turkeyfm.models.user import uid_from_session
@@ -33,7 +33,7 @@ class _RoomController(object):
 
     def __init__(self, rid):
         self.rid = rid
-        self.current_song = ModelCurrentSong(id = rid)
+        self.current_song = SongItem()
         self.song_list = Playlist(id = rid)
         self.device_ns = set()
         self.ns_name = None
@@ -46,23 +46,30 @@ class _RoomController(object):
     def nextsong(self):
         # actually skip the current_song
         # toggle to nextsong
-        if self.current_song.is_new():
+        if not self.current_song.is_new():
             self.current_song.save({'finsh_play_time': time.time() * 1000})
 
         if self.song_list.length() > 0:
+            logger.debug("room:{0}: nextsong".format(self.rid))
             next_song = self.song_list.shift()
             if next_song:
+                self.current_song = next_song
                 msg = self.current_song.toJSON()
                 self.publish('current_song', msg)
                 self.publish('songlist', {
                     'method': 'delete',
                     'data': {'sid': self.current_song.id}
                 })
-                self.current_song = next_song
+                for dev in self.device_ns:
+                    dev.playing_status = self.s_unknow
         else:
             logger.debug('playlist is empty')
 
-    def finish_playing(self, dev):
+    def finish_playing(self, dev, **options):
+        if options.get('sid') == self.current_song.id and dev.playing_status == self.s_finish:
+            logger.debug("hey, you have reported that, don't be harry.")
+            return
+
         if self.current_song.id == None:
             logger.debug('no current_song set, nextsong.')
             return self.nextsong()
@@ -71,7 +78,6 @@ class _RoomController(object):
             list_status = [dev.playing_status for dev in self.device_ns if
                     dev.playing_status != self.s_unknow]
             logger.debug(str(list_status))
-
             def can_skip(list_status):
                 return 2 * list_status.count(self.s_finish) - len(list_status) >= 0
 
@@ -85,7 +91,7 @@ class _RoomController(object):
             if msg.has_key(key):
                 _ud[key] = msg[key]
             else:
-                print key, 'is not set in message'
+                logging.info('%s is not set in message' % key)
                 return False
         dev.playing_status = self.s_playing
         self.current_song.save(_ud)
@@ -145,17 +151,8 @@ def get_room(rid):
 class RoomNamespace(BaseNamespace):
 
     def initialize(self):
-        # #todo add logger for every room
         # Support a better logger
-        self.logger = logger
         self.web_session = self.request or {}
-
-    # // helper methods
-    def log(self, message):
-        self.logger.info("[{0}] {1}".format(self.socket.sessid, message))
-
-    def error(self, message):
-        self.logger.error("[{0}] {1}".format(self.socket.sessid, message))
 
     # // sync time between client and server
     def on_ntp(self):
@@ -170,6 +167,15 @@ class RoomNamespace(BaseNamespace):
         self.room.join(self)
         return self.room.get_init_data()
 
+    def on_leave(self, *args):
+        # args is not required currently(only one room pre client)
+        if self.room:
+            self.room.leave(self)
+            self.room = None
+        else:
+            logger.info("Does not have join any room, can't leave.")
+        return True
+
     def disconnect(self, silent=True):
         self.room.leave(self)
         return super(RoomNamespace, self).disconnect(silent)
@@ -177,11 +183,9 @@ class RoomNamespace(BaseNamespace):
     def revc_disconnect(self):
         return self.disconnect(silent=True)
 
-    #def on_leave(self, room):
-        #return get_room(room).leave(self)
-
     def on_songlist(self, msg):
         song_list = self.room.song_list
+        #logger.debug(song_list.toJSON())
         data = msg.get('data')
         method = (msg.get('method') or 'get').upper()
         _id = song_list.get('_id')
@@ -201,9 +205,13 @@ class RoomNamespace(BaseNamespace):
                 return [True]
             else:
                 model = song_list.create(msg.get('data'))
+                logger.debug("Add <sid=%s> to song_list(%s)", str(model.id), str(song_list.toJSON()))
                 msg['data'] = model.toJSON()
                 self.room.publish(channel, msg)
-                self.log("song_list: +<sid:%s>" % str(model.id))
+
+                if self.room.current_song.is_new():
+                    self.room.nextsong()
+                #logger.debug(song_list.toJSON())
                 return [True]
 
         elif method == 'DELETE':
@@ -229,13 +237,12 @@ class RoomNamespace(BaseNamespace):
 
         if data.get('finish') == True:
             # hey man, i'm finish playing the song, please deal with me!
-            #print 'CurrentSong:', msg
-            self.log('c:finish')
+            #print "CurrentSong: finishplaying", msg
             self.room.finish_playing(self)
             return [True]
 
         if data.get('begin') == True:
-            self.log('c:begin')
+            logger.debug('c:begin')
             self.room.begin_playing(self, msg)
             return [True]
 
