@@ -63,8 +63,6 @@ define 'turkeyfm', [
 
     joinroom: =>
       io.emit 'join', 'default_room', (resp)=>
-        @startListening()
-
         if _.isEmpty(resp.song_list)
           # add more song to songlist
           return FMClient.moreSong()
@@ -74,10 +72,11 @@ define 'turkeyfm', [
 
         current_song.clear({silent: true})
         current_song.set(
-          resp.current_song,
-          {silent: true}
+          resp.current_song
         )
         current_playlist.reset(resp.song_list)
+
+        @startListening()
 
     rock: ->
       #@initPlayer()
