@@ -2,8 +2,14 @@
 Data Structure In Redis
 ========================================================
 
-Song:
-{
-}
+Room related models
+--------------------------------------------------------
+
+1. room.devices: [device_id, device_id...]
+   is device in the room?
+
+   current_song - device
+   status: playing
+
 
 
