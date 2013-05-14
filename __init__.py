@@ -11,20 +11,16 @@ tk.fm - music in the sky
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 """
-
-
 from gevent import monkey; monkey.patch_all()
 
+# Config logging module
+import logging
+logging.basicConfig(format="%(message)s ,line %(lineno)d, %(pathname)s")
+
 import flask
-
 app = flask.Flask(__name__)
-
-#from yafa.session import init_redis_session
 from turkeyfm.utils.session import init_redis_session
-
 app = init_redis_session(app)
-
-# Configure for socket.io
 import views
 
 # start the daemon
