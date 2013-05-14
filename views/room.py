@@ -66,11 +66,18 @@ class _RoomController(object):
             logger.debug('playlist is empty')
 
     def finish_playing(self, dev, **options):
-        if options.get('sid') == self.current_song.id and dev.playing_status == self.s_finish:
-            logger.debug("hey, you have reported that, don't be harry.")
+        target_sid = options.get('sid')
+
+        if target_sid != self.current_song.id:
+            logger.debug("Client current_song is %s, but in server is %s, skipped",
+                    target_sid, self.current_song.id)
             return
 
-        if self.current_song.id == None:
+        if dev.playing_status == self.s_finish:
+            logger.debug("hey, you have reported you have finish song(%s), don't be harry.", target_sid)
+            return
+
+        if not self.current_song.id:
             logger.debug('no current_song set, nextsong.')
             return self.nextsong()
         else:
@@ -86,19 +93,19 @@ class _RoomController(object):
         pass
 
     def begin_playing(self, dev, msg):
-        _ud = {}
-        for key in ['report_time', 'position']:
-            if msg.has_key(key):
-                _ud[key] = msg[key]
-            else:
-                logging.info('%s is not set in message' % key)
-                return False
-        dev.playing_status = self.s_playing
-        self.current_song.save(_ud)
-        #print self.current_song.toJSON()
+        def pick(d, *keys):
+            return dict({ (key, d.get(key)) for key in keys})
 
+        try:
+            msg = pick(msg, 'sid', 'report_time', 'position')
+        except KeyError, e:
+            logger.info('msg passing did not have all key: %s', msg)
+            return
+
+        dev.playing_status = self.s_playing
         if not self.current_song.get('report_time'):
-            self.publish('current_song', _ud)
+            self.current_song.save(msg)
+            self.publish('current_song', msg)
             pass
 
     # room related methods
@@ -226,7 +233,9 @@ class RoomNamespace(BaseNamespace):
         method = msg.get('method').upper()
         data = msg.get('data')
 
-        if data.get('sid') != self.room.current_song.get('sid'):
+        sid = data.get('sid', None)
+
+        if sid != self.room.current_song.get('sid'):
             # hey man, current song of your message is outdated
             # you will be notify for change song!
             pass
@@ -238,16 +247,14 @@ class RoomNamespace(BaseNamespace):
         if data.get('finish') == True:
             # hey man, i'm finish playing the song, please deal with me!
             #print "CurrentSong: finishplaying", msg
-            self.room.finish_playing(self)
+            logger.debug("c:finish: sid=%s", sid)
+            self.room.finish_playing(self, sid=sid)
             return [True]
 
         if data.get('begin') == True:
-            logger.debug('c:begin')
-            self.room.begin_playing(self, msg)
+            logger.debug('c:begin: sid=%s', str(data))
+            self.room.begin_playing(self, data)
             return [True]
-
-        # data.get('sid') is current_song
-        # self.room.current_song.save(attributes)
 
         song_dict = dict(self.room.current_song.toJSON(), like=is_like_the_song(
                 uid=uid,

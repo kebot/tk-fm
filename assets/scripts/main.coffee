@@ -50,8 +50,8 @@ define 'turkeyfm', [
       @listenTo current_song, 'play', =>
         current_song.save(
           _.extend(
-            {'start': true, 'report_time': time.current()},
-            current_song.pick('position'))
+            {'begin': true, 'report_time': time.current()},
+            current_song.pick('position', 'sid'))
           , {patch: true})
 
       @listenTo current_song, 'finish', =>
