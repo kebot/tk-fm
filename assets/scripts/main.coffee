@@ -48,6 +48,9 @@ define 'turkeyfm', [
 
     startListening: ->
       @listenTo current_song, 'play', =>
+        if current_song.get('report_time')
+          return
+
         current_song.save(
           _.extend(
             {'begin': true, 'report_time': time.current()},
@@ -63,9 +66,10 @@ define 'turkeyfm', [
 
     joinroom: =>
       io.emit 'join', 'default_room', (resp)=>
+        @startListening()
         if _.isEmpty(resp.song_list)
           # add more song to songlist
-          return FMClient.moreSong()
+          FMClient.moreSong()
 
         if _.isEmpty(resp.current_song)
           return current_song.trigger('finish')
@@ -76,7 +80,6 @@ define 'turkeyfm', [
         )
         current_playlist.reset(resp.song_list)
 
-        @startListening()
 
     rock: ->
       #@initPlayer()

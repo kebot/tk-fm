@@ -19,7 +19,7 @@ define [
     model: Song
     initialize: ->
       io.on 'songlist', (msg)=>
-        if msg.method == 'create'
+        if msg.method == 'create' or msg.method == 'put'
           @add msg.data
         else if msg.method == 'delete'
           @remove msg.data.sid
