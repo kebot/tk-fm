@@ -53,7 +53,7 @@ define [
   'soundmanager-ready'
   'utils/time'
 ], (
-  current_song
+  model
   _
   Backbone
   soundManager
@@ -87,27 +87,60 @@ define [
         #@currentSong?.destruct()
 
       @current_sid = @model.get('sid')
+
+      get_current_position = =>
+          now = time.current()
+          position = now - (@model.get('report_time') or now)
+
       current_song = soundManager.createSound
         id: @model.get('sid')
         url: @model.get('url')
-        #position: position
-        #onplay: => @model.trigger 'play'
+        # unhandled methods
+        onplay: => console.debug "Player: onplay"# @model.trigger 'play'
+        onpause: => console.debug "Player: onpause"
+        onresume: => console.debug "Player: onresume"#@model.trigger 'resume'
+        ondataerror: => console.error 'data error'
+
         onfinish: => @model.trigger 'finish'
         onstop: => @model.trigger 'stop'
-        onresume: => @model.trigger 'resume'
-        ondataerror: => console.error 'data error'
-        whileplaying: => @model.set 'position', current_song.position
+        #whileloading: =>
+        whileplaying: => 
+          @model.set 'position', current_song.position
+          position = get_current_position()
+
+          if get_current_position() > (current_song.durationEstimate or Infinity)
+            return @model.trigger 'finish'
+
+          distance = Math.abs(current_song.position - position)
+
+          if distance < 100
+            return
+
+          console.debug "Position should be " + position + " but current_position is " + current_song.position
+
+          for i in current_song.buffered
+            if i.start < position < i.end
+              return current_song.setPosition(get_current_position())
+
         onload: (success)=>
+          @model.set 'length', current_song.durationEstimate
+          @model.once 'change:position', =>
+            @model.trigger 'play'
+
+        ###
+        _onload: ()->
           console.debug @current_sid, ' :onload'
           if not success
             console.log 'load music error!'
             @model.trigger 'finish'
             return
           @model.set 'length', current_song.durationEstimate
+
           getCurrentPosition = =>
             now = time.current()
             position = (@model.get('position') or 0) \
                       + now - (@model.get('report_time') or now)
+
           setPositionIfLoaded = =>
             position = getCurrentPosition()
             if position > @model.get('length')
@@ -122,12 +155,15 @@ define [
             else
               console.debug 'setPositionIfLoaded: do nothing'
               return false
+
           if not setPositionIfLoaded()
             current_song.options.whileloading = =>
               console.debug 'event: whileloading!'
               setPositionIfLoaded()
+        ###
+
         onsuspend: => console.log 'suspend!!!!!!!!!!!'
       current_song.play()
 
-  new PlayerView model: current_song
+  new PlayerView model: model
 
