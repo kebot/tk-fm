@@ -16,6 +16,24 @@ class Song(RedisModel):
             attributes.__setitem__('length', length * 1000)
         return attributes
 
+    def toJSON(self,  **kwargs):
+        """@todo: Docstring for toJSON
+
+        :**kwargs: @todo
+        :returns: @todo
+        """
+        attributes = super(Song, self).toJSON(**kwargs)
+
+        if not attributes.get(self.id_attribute):
+            return {}
+
+        is_like = 0
+        if kwargs.get('uid') is not None:
+            is_like = is_like_the_song(kwargs.get('uid'), self.id)
+
+        attributes.update({'like': is_like})
+        return attributes
+
 
 class Channel(RedisModel):
     __prefix__ = 'channel'
@@ -34,13 +52,14 @@ def is_like_the_song(uid, sid, status=None,redis_client=None):
 
     if status is None:
         if redis_client.hexists(redis_key, sid):
-            return redis_client.hget(redis_key, sid)
+            return int(redis_client.hget(redis_key, sid))
         else:
             return SONG_UNKNOW
     else:
         if status in [SONG_BANED, SONG_LIKED, SONG_UNKNOW]:
-            return redis_client.hset(redis_key, sid, status)
+            return int(redis_client.hset(redis_key, sid, status))
 
+# user -> like -> song
 
 # the new relationship api will be instead whis class
 class UserSong():
@@ -66,23 +85,4 @@ class UserSong():
     def set(self, sid, status):
         assert status in [self.BANED, self.LIKED, self.UNKNOW]
         return self.redis_client.hset(self.redis_key, sid, status)
-
-
-if __name__ == '__main__':
-    info = {
-      "album": "In Today Already Walks Tomorrow",
-      "r": 0,
-      "artist": "Sleepmakeswaves",
-      "song_name": "So That The Children Will Always Shout Her Name",
-      "cover": "http://img3.douban.com/lpic/s2981473.jpg",
-      "id": "1381723"
-    }
-    model = Song(info)
-    model.redis_client.flushall()
-    assert model.redis_key == "song-1381723"
-    model.save()
-
-    model2 = Song({'id': '1381723'})
-    model2.fetch()
-    assert model2.toJSON() == model.toJSON()
 

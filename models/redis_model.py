@@ -162,8 +162,8 @@ class RedisModel(object):
 
         return self.attributes.update(update_dict)
 
-    def toJSON(self, fetch=False):
-        if fetch or self.attributes == {}:
+    def toJSON(self, **kwargs):
+        if kwargs.get('fetch', None) or self.attributes == {}:
             #print 'RedisModel: Fetch model with key', self.redis_key
             self.fetch()
         return self.attributes
@@ -175,4 +175,7 @@ if __name__ == '__main__':
 
     rm = RedisModel({'id': 369918}, prefix='song')
     assert rm.toJSON() == {}
+
+
+
 

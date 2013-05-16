@@ -69,10 +69,12 @@ other attributes for the song is copy from key="song-<sid>"
 
     extend_class = Song
 
-    def toJSON(self, *args, **kwargs):
-        song_attrs = Song(id=self.id).toJSON(fetch=True)
-        extra_attrs = RedisModel.toJSON(self, *args, **kwargs)
-        #logger.debug("SongItem->toJSON():self.id: {0} \n song_attrs: {1} \n extra_attrs: {2}".format(self.id, song_attrs, extra_attrs))
+    def toJSON(self, **kwargs):
+        extra_attrs = super(SongItem, self).toJSON(**kwargs)
+
+        kwargs.update(fetch=True)
+        song_attrs = Song(id=self.id).toJSON(**kwargs)
+
         song_attrs.update(extra_attrs)
         return song_attrs
     pass

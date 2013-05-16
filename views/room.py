@@ -42,6 +42,9 @@ class _RoomController(object):
     def get_init_data(self):
         return [dict(current_song=self.current_song.toJSON(),
                 song_list=self.song_list.toJSON())]
+    def get_init_data(self, uid=None):
+        return [dict(current_song=self.current_song.toJSON(uid=uid),
+                song_list=self.song_list.toJSON(uid=uid))]
 
     def nextsong(self):
         # actually skip the current_song
@@ -257,10 +260,7 @@ class RoomNamespace(BaseNamespace):
             self.room.begin_playing(self, data)
             return [True]
 
-        song_dict = dict(self.room.current_song.toJSON(), like=is_like_the_song(
-                uid=uid,
-                sid=self.room.current_song.get('sid'),
-            ))
+        song_dict = self.room.current_song.toJSON(uid=uid)
 
         self.room.publish('current_song', song_dict)
 

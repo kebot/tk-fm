@@ -86,10 +86,9 @@ class RedisCollection(object):
         return self.models.remove(model.id)
 
 
-    def toJSON(self):
-        return [self._create_model_class(id=i).toJSON(fetch=True) for i in
+    def toJSON(self, **kwargs):
+        return [self._create_model_class(id=i).toJSON(fetch=True, **kwargs) for i in
                 self.models]
-                #self.models.all()]
 
     def create(self, attributes, **options):
         # @TODO handle create error problem.
