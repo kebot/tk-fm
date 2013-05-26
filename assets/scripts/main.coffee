@@ -24,7 +24,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ###
 
 
-define 'turkeyfm', [
+define 'room', [
   'underscore'
   'backbone'
   'collections/current_playlist',
@@ -57,15 +57,21 @@ define 'turkeyfm', [
             current_song.pick('position', 'sid'))
           , {patch: true})
 
-      @listenTo current_song, 'finish', =>
+      # throttle version, it will called every 1000 times
+      @listenTo current_song, 'finish', _.throttle =>
         current_song.save({
           'finish': true,
           'sid': current_song.id
         }, {patch: true})
+      , 1000
 
+      @listenTo current_song, 'change:like', =>
+        current_song.save(
+          current_song.pick('sid', 'like')
+        , {patch: true})
 
-    joinroom: =>
-      io.emit 'join', 'default_room', (resp)=>
+    joinroom: (room_id)=>
+      io.emit 'join', room_id, (resp)=>
         @startListening()
         if _.isEmpty(resp.song_list)
           # add more song to songlist
@@ -80,46 +86,76 @@ define 'turkeyfm', [
         )
         current_playlist.reset(resp.song_list)
 
+    leaveroom: (room_id)=>
+      # @Todo leave room.
+      # (x) 1. destory the current_song and
+      #     current_playlist(will be received from server)
+      # 2. change current_room, show loading message.
+      io.emit 'leave', room_id, (resp)=>
+        console.debug 'user leave the room', room_id
+        @stopListening()
 
-    rock: ->
-      #@initPlayer()
-      require ['views/player'], (player)->
-
-      # init the header-songinfo
+    rock: (room_id)->
+      #require ['views/player'], (player)->
       require ['views/app'], (AppView)->
         theview = new AppView model: current_song
         $('#app').html theview.el
 
-      #require ['views/songlist'], (songlist)->
-        #$('#main').append songlist.el
+      #io.on 'connect', @joinroom
+      #if io.socket.connected
+        #@joinroom()
 
-      io.on 'connect', @joinroom
-      if io.socket.connected
-        @joinroom()
+require [
+  'utils/ajax'
+  'models/current_user'
+], (ajax, current_user)->
+  ajax.json '/account', (r)->
+    if r.r == 0
+      current_user.set r.user_info
 
-
-show_login = ->
-  require [
-    'jquery'
-    'backbone'
-    'utils/ajax'
-    'models/current_user'
-  ], ($, Backbone, ajax, current_user)->
-    ## if not login, then show the login form
-    ajax.json '/account', (r)->
-      if r.r == 0
-        current_user.set r.user_info
+require [
+  'underscore'
+  'jquery'
+  'router'
+], (_, $, router)->
+  router.on 'route:login', ->
+    require [
+      'backbone',
+      'models/current_user'
+    ], (
+      Backbone,
+      current_user
+    )->
+      if current_user.isLogin()
+        return Backbone.history.navigate('/', trigger: true)
       else
         require ['views/mod/login'], (mod_login)->
           $('body').append(mod_login.el)
           mod_login.show()
 
-require [
-  'turkeyfm'
-  'jquery'
-], (FM, $)->
-  show_login()
-  lets = new FM()
-  # Let's rock, play the music!!!
-  lets.rock()
+  # flask style router
+  router.route "room/:room_id", (room_id)->
+    require ['room'], (room)->
+      room.rock(room_id)
+
+  $ ->
+    require [
+      'views/aside'
+    ], (
+      Aside
+    )->
+      html = (new Aside()).render()
+      #console.debug html
+      $app = $('#app')
+      console.debug $app
+      $app.append(html)
+
+    if Backbone.history.start({pushState: true})
+      console.debug 'successfully run the application!'
+    else
+      console.debug 'No defined router defined for', location.href
+      _.delay ->
+        console.info 'Will navigate to / after 3 seconds!'
+        Backbone.history.navigate '/', trigger: true
+      , 3
 

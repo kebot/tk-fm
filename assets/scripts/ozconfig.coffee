@@ -6,7 +6,7 @@ require.config
   distUrl: "http://#{window._rock_host}/static/dist"
 
 __toString = Object.prototype.toString
-__isArray = Array.isArray or (obj)-> __toString.call(obj) == '[object Array]'
+__isArray = Array.isArray or (obj)-> __toString.call(obj) == "[object Array]"
 
 bowerDefine = (package_name, deps, main_js, non_amd_callback=null)->
   if not __isArray deps
@@ -38,7 +38,7 @@ bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
 #bowerDefine 'gsap-timelinemax', 'src/uncompressed/TimeLineMax.js'
 #bowerDefine 'gsap-tweenlite', 'src/uncompressed/TweenLite.js'
 #bowerDefine 'gsap-tweenmax', 'src/uncompressed/TweenMax.js'
-bowerDefine 'tweenMax', 'src/uncompressed/TweenMax.js'
+bowerDefine 'tweenMax', 'src/uncompressed/TweenMax.js', -> window.TweenMax
 # plugins available: cssplugin, cssruleplugin, scrolltoplugin, etc...
 
 bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager

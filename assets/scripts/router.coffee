@@ -1,21 +1,20 @@
-define ['backbone'], (Backbone)->
+define ['jquery', 'backbone'], ($, Backbone)->
   # class Router extends Backbone.Router
 
-  new class AppRouter extends Backbone.Router
+  new class extends Backbone.Router
     routes:
-      # personal channel
-      '/song/:sid': 'change_song'
-      '/place/:name': 'switch_to_place'
+      '': 'player'
+      'account/login': 'login'
 
-    constructor: (options)->
-      @options = options
+      'place/:name': 'switch_to_place'
+      'song/search': 'search_song'
 
-    run: ->
-      # be sure to call it after DOM is ready.
-      result = Backbone.history.start({pushState: true})
-      if result == true
-        console.log 'successfully running the application!'
-
-    registerApplication: (app)->
-      # Source Code Pro for Powerline
+    index: ->
+      # the main container
+      require ['views/welcome'], (
+        Welcome
+      )->
+        $('#app').html(
+          new Welcome().render()
+        )
 
