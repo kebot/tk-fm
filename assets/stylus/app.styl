@@ -1,0 +1,49 @@
+// icon-xxx class
+@import 'images'
+
+@import 'bootstrap/variables'
+@import 'bootstrap/mixins'
+
+@import 'bootstrap/reset'
+
+@import 'bootstrap/type'
+@import 'bootstrap/utilities'
+
+// Grid and layout
+@import 'bootstrap/scaffolding'
+@import 'bootstrap/layouts'
+@import 'bootstrap/grid'
+
+// Components
+@import 'bootstrap/navs'
+@import 'bootstrap/navbar'
+@import 'bootstrap/buttons'
+
+// Custom UI
+@import 'style-x/page-player'
+
+
+// Patch Navbar
+#app
+  width: 100%
+  .navbar
+    .btn-navbar
+      float: left
+    .nav-collapse
+      navWidth = 70%
+      height: 100% !important
+      position: absolute
+      top: 0
+      bottom: 0
+      left: -70%
+      width: navWidth
+      background-color: black
+      h3
+        text-align: center
+      .mod
+        padding: 9px 15px 
+
+body
+  background-color: #F7F7F7
+
+

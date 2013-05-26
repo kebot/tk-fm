@@ -1,0 +1,47 @@
+$background-color = #f0f2f1
+$progress-height = 5px
+
+#page-player
+  position: relative
+  padding-top: @progress-height
+
+  .top-fixed
+    width: 100%
+    position: relative
+    left: 0
+    // top: $navbarHeight + 6
+    .progress-container
+      background: rgba(198,211,205,0.5)
+      height: $progress-height
+
+      .progress-bar
+        height: $progress-height
+        background: #9dd6c5
+
+  .cover-bg
+    min-height: 400px
+
+    #info-header
+      color: #fff
+      .info
+        color: #999
+      font-size: 10px;
+      // opacity: 1;
+
+
+    #actions
+      position: absolute
+      bottom: 0px
+      height: 37px
+      a
+        text-align: center
+        cursor: pointer
+
+      a:hover
+        background-color: rgba(0, 0, 0, .2)
+
+      .icon
+        display: inline-block
+
+
+
