@@ -33,16 +33,18 @@ define [
         $el = $(element)
         id = $el.attr('id')
         val = $el.val()
-        console.debug id, val
+        #console.debug id, val
         if id and val
           result[id] = val
 
       ajax.json '/account/login', 'POST', result, (result)=>
         if result.r == 0 and result.user_info
+          # login successfully
           current_user.set result.user_info
+          Backbone.history.navigate("/", {trigger: true})
           @hide()
         else
-          o = _.chain([
+          @model.set _.chain([
             [1011, 'captcha_error'],
             [1012, 'alias_error'],
             [1013, 'password_error'],
@@ -56,14 +58,16 @@ define [
             err_msg: result.err_msg
             captcha_id: false
           ).value()
-          @model.set o
           @new_captcha()
 
     show: ->
+      @$el.show()
       @model.set 'display': true
       @new_captcha()
 
-    hide: -> @model.set 'display': false
+    hide: ->
+      @$el.hide()
+      @model.set 'display': false
 
   return new LoginMod()
 

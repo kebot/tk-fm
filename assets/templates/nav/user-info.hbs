@@ -1,0 +1,10 @@
+{{#if is_login}}
+<a href="/account">
+  <img alt="{{ name }}" src="{{icon}}" class="img-circle">
+  <small class="center">{{ name }}</small>
+</a>
+{{else}}
+<a href="/account/login">
+  Login
+</a>
+{{/if}}

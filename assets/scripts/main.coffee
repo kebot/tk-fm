@@ -118,37 +118,30 @@ require [
   'jquery'
   'router'
 ], (_, $, router)->
-  router.on 'route:login', ->
-    require [
-      'backbone',
-      'models/current_user'
-    ], (
-      Backbone,
-      current_user
-    )->
-      if current_user.isLogin()
-        return Backbone.history.navigate('/', trigger: true)
-      else
-        require ['views/mod/login'], (mod_login)->
-          $('body').append(mod_login.el)
-          mod_login.show()
-
-  # flask style router
-  router.route "room/:room_id", (room_id)->
-    require ['room'], (room)->
-      room.rock(room_id)
+  
+  # view based router
+  for i in ['login']
+    router.on 'route:' + i, ->
+      require ['views/page/' + i], (pageView)->
+        $('#pages>div').hide()
+        $page = $('#page-' + i)
+        if $page.length == 0
+          $page = $(pageView.el)
+          $page.attr 'id', 'page-' + i
+          $('#pages').append $page
+          pageView.render()
+        pageView.show()
+        #$page.show()
 
   $ ->
     require [
-      'views/aside'
+      'views/nav'
     ], (
-      Aside
+      NavView
     )->
-      html = (new Aside()).render()
-      #console.debug html
-      $app = $('#app')
-      console.debug $app
-      $app.append(html)
+      aside = new NavView(
+        el: $('#nav')
+      )
 
     if Backbone.history.start({pushState: true})
       console.debug 'successfully run the application!'
