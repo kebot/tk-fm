@@ -5,10 +5,19 @@ from flask import render_template, session, redirect, url_for, request
 from turkeyfm import app
 from turkeyfm.models import Room as RoomModel
 
+@app.route('/ui', methods=['GET'])
+def ui():
+    return render_template('ui.html')
+
+@app.route('/<path:url>', methods=['GET'])
 @app.route('/', methods=['GET'])
-def index():
-    """docstring for index"""
+def index(url=None):
+    """All routes will be proxy in front-end."""
     return render_template('index.html')
+
+#@app.route('/ui', methods=['GET'])
+#def index():
+    #return render_template('ui.html')
 
 # url-pattern '/room/:room.uuid'
 # ------------------------ room crud ------------------------------

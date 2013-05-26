@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+fm.py
+~~~~~~~~~
+
+interfaces related with douban.fm
+
+"""
 
 import os
 from os import path
@@ -79,6 +86,7 @@ def get_account():
 @app.route('/radio/liked_songs')
 @require_api_login
 def liked_songs():
+    """  """
     api_user_info = session['api_info']
     print 'api_info in session', api_user_info
     if api_user_info:
@@ -96,6 +104,8 @@ def proxy_api(info):
     return Response(response=r.content, status=r.status_code,
             content_type=r.headers.get('content-type', 'application/json'))
 
+
+# - * - * - * - * -
 
 @app.route("/fm/mine/playlist", methods=['GET'])
 @require_web_login
@@ -119,9 +129,6 @@ def proxy_playlist():
 
     return jsonify(response)
 
-    #return Response(response=r.content, status=r.status_code,
-            #content_type=r.headers.get('content-type', 'application/json'))
-
 
 @app.route('/fm/<path:info>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def proxy_tofm(info):
@@ -134,6 +141,42 @@ def proxy_tofm(info):
     else:
         return abort(404)
 
+# - * - * - * - * -
+# Custom API
+#from collection import OrderedDict
+from yafa.redisdb.types import RedisSortedSet
+
+_dj_cookies = RedisSortedSet(key='__dj_cookie_infos')
+
+@app.route("/j/song/search")
+def search_songs():
+    params = request.json or request.args or {}
+
+    if session.get('user_info', {}).get('is_dj'):
+        cookie_info = session.get('cookie_info')
+        str_cookie_info = json.dumps(cookie_info)
+        _dj_cookies.add(str_cookie_info, 0)
+    else:
+        str_cookie_info = _dj_cookies.first()
+        if not str_cookie_info:
+            return abort(404, 'No Dj Found')
+        cookie_info = json.loads(str_cookie_info)
+
+    _dj_cookies.incrby(str_cookie_info, 1)
+    web_client = WebClient.from_dict(cookie_info)
+
+    r = web_client.search_song(**params)
+    print r
+
+    if r.ok:
+        _dj_cookies.incrby(str_cookie_info, -1)
+        return Response(response=r.content, status=r.status_code,
+                content_type=r.headers.get('content-type', 'application/json'))
+    else:
+        _dj_cookies.incrby(str_cookie_info, 1)
+        return abort(404)
+
+# - * - * - * - * -
 
 TMP_PATH = '/tmp/turkeyfm/'
 AUDIO_PATH = path.join(app.static_folder, 'audio')
