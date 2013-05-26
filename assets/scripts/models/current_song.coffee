@@ -35,6 +35,9 @@ define [
           continue
         m = moment(attributes[key])
         attributes[key] = "#{m.minute()}:#{m.second()}"
+
+      attributes['like'] = attributes['like'] is not 0
+
       return attributes
 
   return new CurrentSong()
