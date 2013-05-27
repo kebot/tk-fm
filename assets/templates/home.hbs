@@ -1,0 +1,30 @@
+<div class="top-fixed">
+  <div class="progress-container">
+    <div class="progress-bar" style="width: {{precentage}};"></div>
+  </div>
+</div>
+<div class="cover-bg" 
+  style="background-image: url('{{picture}}');">
+  <!-- big cover -->
+  <div id="info-header">
+    {{title}} <small>{{artist}} - {{albumtitle}}</small>
+    <span id="playerposition" class="pull-right info">{{position}} / {{length}}</span>
+  </div>
+  <div id="actions" class="row-fluid">
+    <a id="rate" class="span4">
+      <i class="icon {{#if like}}
+          icon-heart-red
+        {{else}}
+          icon-heart-black
+        {{/if}}"></i>
+    </a>
+
+    <a id="ban" class="span4">
+      <i class="icon icon-trash"></i>
+    </a>
+
+    <a id="skip" href="{{sid}}" class="span4">
+      <i class="icon icon-skip"></i>
+    </a>
+  </div>
+</div>

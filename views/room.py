@@ -3,6 +3,8 @@
 import time
 import types
 
+import gevent
+
 from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin
 
@@ -16,10 +18,11 @@ from turkeyfm.models.room import Playlist, SongItem
 from turkeyfm.models.redis_model import RedisModel
 
 from turkeyfm.models.user import uid_from_session
-from turkeyfm.models.song import is_like_the_song
 
 import logging
 logger = logging.getLogger('room')
+
+from underscore import _
 
 class _RoomController(object):
     # for easy scaling, it will be use for routing.
@@ -31,6 +34,10 @@ class _RoomController(object):
     s_unknow = 0
     s_playing = 1
 
+    s_rate = 2
+    s_skip = -1
+    s_ban = -2
+
     def __init__(self, rid):
         self.rid = rid
         self.current_song = SongItem()
@@ -39,9 +46,6 @@ class _RoomController(object):
         self.ns_name = None
         logger.debug("Create global room: %s", rid)
 
-    def get_init_data(self):
-        return [dict(current_song=self.current_song.toJSON(),
-                song_list=self.song_list.toJSON())]
     def get_init_data(self, uid=None):
         return [dict(current_song=self.current_song.toJSON(uid=uid),
                 song_list=self.song_list.toJSON(uid=uid))]
@@ -65,6 +69,7 @@ class _RoomController(object):
                 })
                 for dev in self.device_ns:
                     dev.playing_status = self.s_unknow
+                    dev.rating_status = self.s_unknow
         else:
             logger.debug('playlist is empty')
 
@@ -97,11 +102,8 @@ class _RoomController(object):
         pass
 
     def begin_playing(self, dev, msg):
-        def pick(d, *keys):
-            return dict({ (key, d.get(key)) for key in keys})
-
         try:
-            msg = pick(msg, 'sid', 'report_time', 'position')
+            msg = _.pick(msg, 'sid', 'report_time', 'position')
         except KeyError, e:
             logger.info('msg passing did not have all key: %s', msg)
             return
@@ -112,6 +114,49 @@ class _RoomController(object):
             self.publish('current_song', msg)
             pass
 
+    def skip_song(self):
+        return self.nextsong()
+
+    def rate(self, dev, like, sid):
+        waitting_time = 5
+
+        if sid != self.current_song.id:
+            logger.debug('Different sid in rate, skipped!')
+            return
+
+        dev.rating_status = like
+        if like in [self.s_unknow, self.s_rate]:
+            return 
+        elif like not in [self.s_skip, self.s_ban]:
+            logger.info('rating value not available.')
+            return
+
+        #, self.s_skip, self.s_ban]
+        def get_mark():
+            total = 0
+            length = 0
+            for dev in self.device_ns:
+                print dev.rating_status
+                total += dev.rating_status
+                length += 1
+            #print "total:", total ," length", length
+            return float(total) / length
+
+        mark = get_mark()
+        logger.debug('Marking result: %s', mark)
+
+        if mark <= -1:
+            # skip now
+            self.skip_song()
+        elif mark < 0:
+            logger.debug("waiting for %i seconds.", waitting_time)
+            gevent.sleep(seconds=waitting_time)
+            # judge is song changed
+            if self.current_song.id == sid:
+                if get_mark() < 0:
+                    self.skip_song()
+                pass
+
     # room related methods
     def join(self, dev):
         #print "<rid-%s with %i devices>" % (self.rid, len(self.device_ns) + 1)
@@ -119,6 +164,8 @@ class _RoomController(object):
             self.ns_name = dev.ns_name
 
         dev.playing_status = self.s_unknow
+        dev.rating_status = self.s_unknow
+
 
         return self.device_ns.add(dev)
 
@@ -164,6 +211,7 @@ class RoomNamespace(BaseNamespace):
     def initialize(self):
         # Support a better logger
         self.web_session = self.request or {}
+        self.room = None
 
     # // sync time between client and server
     def on_ntp(self):
@@ -188,7 +236,8 @@ class RoomNamespace(BaseNamespace):
         return True
 
     def disconnect(self, silent=True):
-        self.room.leave(self)
+        if self.room:
+            self.room.leave(self)
         return super(RoomNamespace, self).disconnect(silent)
 
     def revc_disconnect(self):
@@ -258,6 +307,10 @@ class RoomNamespace(BaseNamespace):
         if data.get('begin') == True:
             logger.debug('c:begin: sid=%s', str(data))
             self.room.begin_playing(self, data)
+            return [True]
+
+        if data.get('like'):
+            self.room.rate(self, **_.pick(data, 'sid', 'like'))
             return [True]
 
         song_dict = self.room.current_song.toJSON(uid=uid)

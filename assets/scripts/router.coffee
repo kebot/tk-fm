@@ -3,8 +3,9 @@ define ['jquery', 'backbone'], ($, Backbone)->
 
   new class extends Backbone.Router
     routes:
-      '': 'player'
+      '': 'home'
       'account/login': 'login'
+      'top': 'top'
 
       'place/:name': 'switch_to_place'
       'song/search': 'search_song'

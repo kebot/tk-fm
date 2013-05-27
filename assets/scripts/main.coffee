@@ -42,7 +42,7 @@ define 'room', [
   time
   FMClient
 )->
-  class TurkeyFM
+  new class TurkeyFM
     constructor: ->
       _.extend this, Backbone.Events
 
@@ -96,14 +96,10 @@ define 'room', [
         @stopListening()
 
     rock: (room_id)->
-      #require ['views/player'], (player)->
       require ['views/app'], (AppView)->
         theview = new AppView model: current_song
         $('#app').html theview.el
 
-      #io.on 'connect', @joinroom
-      #if io.socket.connected
-        #@joinroom()
 
 require [
   'utils/ajax'
@@ -113,6 +109,7 @@ require [
     if r.r == 0
       current_user.set r.user_info
 
+# join a random room
 require [
   'underscore'
   'jquery'
@@ -120,20 +117,26 @@ require [
 ], (_, $, router)->
   
   # view based router
-  for i in ['login']
+  _.each ['login', 'home', 'top'], (i)->
+    router_name = i
     router.on 'route:' + i, ->
-      require ['views/page/' + i], (pageView)->
+      require ['views/page/' + router_name], (pageView)->
         $('#pages>div').hide()
-        $page = $('#page-' + i)
+        $page = $('#page-' + router_name)
         if $page.length == 0
           $page = $(pageView.el)
-          $page.attr 'id', 'page-' + i
+          $page.attr 'id', 'page-' + router_name
           $('#pages').append $page
           pageView.render()
         pageView.show()
-        #$page.show()
 
   $ ->
+    require [
+      'room'
+      'views/player'
+    ], (room, Player)->
+      room.joinroom('whatever')
+
     require [
       'views/nav'
     ], (

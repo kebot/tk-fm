@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import render_template, session, redirect, url_for, request
+from flask import render_template, session, redirect, url_for, request, jsonify
 from turkeyfm import app
 from turkeyfm.models import Room as RoomModel
+from turkeyfm.models.song import Song as SongModel
+from yafa.redisdb import get_redis
 
 @app.route('/ui', methods=['GET'])
 def ui():
@@ -37,6 +39,16 @@ def restful_room(rid):
     elif request.method == 'DELETE':
         pass
 
+# -----------------------------------------------------------------
+redis_client = get_redis()
+@app.route('/j/topsongs', methods=['GET'])
+def topsongs():
+    count = 20
+    r = []
+    for i in redis_client.keys('song-*'):
+        m = SongModel(id=i[5:])
+        r.append(m.toJSON())
+    return jsonify(songs=r)
 
 # ------------------------ misc -----------------------------------
 @app.route('/crossdomain.xml')
