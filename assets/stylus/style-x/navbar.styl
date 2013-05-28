@@ -1,0 +1,40 @@
+@media (max-width: 979px)
+  // Patch Navbar
+  #app
+    width: 100%
+    .navbar
+      button.btn-navbar
+        float: left
+        width: 40px
+        height: 40px
+
+      button.btn-navbar.pull-right
+        float: right
+
+      .navbar-inner
+        padding: 5px 20px
+
+      .nav-collapse
+        navWidth = 30%
+        height: 100% !important
+        position: absolute
+        top: 0
+        bottom: 0
+        left:  -1 * navWidth
+        width: navWidth
+        background-color: black
+        h3
+          text-align: center
+        .mod
+          padding: 9px 15px 
+
+
+// for mobile devices
+@media (max-width: 767px)
+  #app
+    .navbar
+      .nav-collapse
+        navWidth = 70%
+        width: navWidth
+        left: -1 * navWidth
+

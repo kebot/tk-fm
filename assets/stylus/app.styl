@@ -1,7 +1,12 @@
 // icon-xxx class
-@import 'images'
+
 
 @import 'bootstrap/variables'
+
+// Custom Variables
+$iconSpritePath = "/static/components/bootstrap-stylus/img/glyphicons-halflings.png"
+$iconWhiteSpritePath = "/static/components/bootstrap-stylus/img/glyphicons-halflings-white.png"
+
 @import 'bootstrap/mixins'
 
 @import 'bootstrap/reset'
@@ -20,36 +25,18 @@
 @import 'bootstrap/buttons'
 @import 'bootstrap/forms'
 @import 'bootstrap/tables'
+@import 'bootstrap/sprites'
+
+@import 'images'
 
 // Custom UI
+@import 'style-x/navbar'
 @import 'style-x/page-player'
 
 html, body, #app, #pages, #pages > div
   height: 100%
   overflow: hidden
 
-
-// Patch Navbar
-#app
-  width: 100%
-  .navbar
-    .btn-navbar
-      float: left
-    .nav-collapse
-      navWidth = 70%
-      height: 100% !important
-      position: absolute
-      top: 0
-      bottom: 0
-      left: -70%
-      width: navWidth
-      background-color: black
-      h3
-        text-align: center
-      .mod
-        padding: 9px 15px 
-
 body
   background-color: #F7F7F7
-
 

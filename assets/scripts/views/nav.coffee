@@ -13,6 +13,8 @@ define [
   current_user
   TweenMax
 )->
+
+
   # todo
   class extends Backbone.View
     events:
@@ -37,11 +39,17 @@ define [
       return event.preventDefault()
 
     toggleSidebar: (event)->
+      if @$('button.btn-navbar').css('display') == "none"
+        return
+
       $nav = @$('.nav-collapse')
       $main = $('#app')
       wait = 0.5
+
+      $nav.width()
+
       if $nav.css('left') == '0px'
-        TweenMax.to($nav, wait, {left: '-70%'})
+        TweenMax.to($nav, wait, {left: -$nav.width()})
         TweenMax.to $main, wait, {'margin-left': 0}
       else
         TweenMax.to($nav, wait, {left: '0%'})
