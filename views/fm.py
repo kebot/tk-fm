@@ -112,8 +112,8 @@ def proxy_api(info):
 def proxy_playlist():
     info = 'mine/playlist'
     client = g.web_client
-    extra = request.json or {}
-    r = client.request(request.method, info, **extra)
+    args = request.json or request.values or {}
+    r = client.request(request.method, info, params=args)
 
     if not r.ok:
         return abort(404)
@@ -142,12 +142,63 @@ def proxy_tofm(info):
         return abort(404)
 
 # - * - * - * - * -
+
+@app.route('/j/song/<int:sid>/info', methods=['GET'])
+def song_info(sid):
+    r = requests.get('http://music.douban.com/api/song/info', params={'song_id': sid})
+    if r.ok:
+        return Response(response=r.content, status=r.status_code,
+                content_type='application/json')
+    else:
+        return abort(404)
+
+@app.route('/j/song/<int:sid>/lyric', methods=['GET'])
+def song_lyric(sid):
+    r = requests.get('http://music.douban.com/api/song/info', params={'song_id': sid})
+    if r.ok:
+        json = r.json()
+        if json['lyric']:
+            return jsonify({
+                'r': 0,
+                'lyric': json['lyric']
+                })
+
+    song_model = models.Song(id=sid)
+    song_model.fetch()
+    url = u"http://geci.me/api/lyric/%s/%s" % (song_model.get('title').decode('utf8'),
+            song_model.get('artist').decode('utf8'))
+
+    def process_search_result(url):
+        print 'Fetching -- ', url.encode('utf8')
+        r = requests.get(url)
+        if r.ok:
+            json = r.json()
+            if json['count'] > 0:
+                url = json['result'][0]['lrc']
+                lyric = requests.get(url)
+                return jsonify({
+                    'r': 0,
+                    'lyric': lyric.content })
+            return None
+        else:
+            return jsonify({'r': 1, 'msg': 'no song found!'})
+
+    result = process_search_result(url)
+    if not result:
+        url_without_artist = u"http://geci.me/api/lyric/%s" % song_model.get('title').decode('utf8')
+        result = process_search_result(url_without_artist)
+        if not result:
+            return jsonify({'r': 1, 'msg': 'song do not found!'})
+
+    return result
+
+
+# - * - * - * - * -
 # Custom API
 #from collection import OrderedDict
 from yafa.redisdb.types import RedisSortedSet
 
 _dj_cookies = RedisSortedSet(key='__dj_cookie_infos')
-
 @app.route("/j/song/search")
 def search_songs():
     params = request.json or request.args or {}
@@ -214,30 +265,30 @@ def audio(sid, url):
         return Response(generate(), mimetype='audio/mpeg')
 
 
-urls = (
-    '/song/<int:sid>', 'Song',
-)
+#urls = (
+    #'/song/<int:sid>', 'Song',
+#)
 
-class Song(RestfulMixins):
-    @property
-    def client():
-        return self._client or WebClient()
+#class Song(RestfulMixins):
+    #@property
+    #def client():
+        #return self._client or WebClient()
 
-    def GET(self, sid):
-        print sid
-        m = models.Song(id=str(sid))
-        m.fetch()
-        result = m.toJSON()
-        if not result:
-            return self.error(404, msg="song_no_found")
-        return jsonify(result)
-
-
-class User(RestfulMixins):
-    pass
+    #def GET(self, sid):
+        #print sid
+        #m = models.Song(id=str(sid))
+        #m.fetch()
+        #result = m.toJSON()
+        #if not result:
+            #return self.error(404, msg="song_no_found")
+        #return jsonify(result)
 
 
-webpy_route(app, urls, locals())
+#class User(RestfulMixins):
+    #pass
+
+
+#webpy_route(app, urls, locals())
 
 
 if __name__ == '__main__':

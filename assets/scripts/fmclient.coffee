@@ -1,6 +1,16 @@
 define 'collections/channel', [
   'backbone', 'models/song', 'models/current_user', 'underscore'
 ],(Backbone,  Song,           current_user,         _)->
+
+  s = 'abcdefghijklmnopqrstuvwxyz'
+  #_groups = s + s.toUpperCase(s) + '0123456789'
+  _groups = s + '0123456789'
+  randomString = (length)->
+    output = ""
+    while output.length < length
+      output += _groups[_.random(0, _groups.length - 1)] 
+    return output
+
   ###
   params:
     type: s、p、e、b、n、u、r
@@ -24,8 +34,16 @@ define 'collections/channel', [
     model: Song
 
     url: ->
-      '/fm/mine/playlist'
-      #?type=n&sid=&pt=0.0&channel=0&from=mainsite&kbps=192&r=82e6b6a312'
+      # 'http://douban.fm/j/mine/playlist?type=n&sid=1408536&pt=0.9&channel=-3&pb=64&from=mainsite&r=1ae3ba797f'
+      '/fm/mine/playlist?' + $.param({
+        'channel': @channel_id
+        'type': 'n'
+        # 'sid': ''
+        'pt': 0.9
+        'pb': 64
+        'from': 'mainsite'
+        'r': randomString(10)
+      })
     fetch: (options)->
       super(options)
 
@@ -55,6 +73,7 @@ define [
 )->
   PERSONAl_CHANNEL = 0
   CHINESE_CHANNEL  = 1
+  RED_HEARTED = -3
 
   class HistoryItem extends Backbone.Model
     # request with history,
@@ -75,9 +94,11 @@ define [
     constructor: ->
       _.extend this, Backbone.Events
       if current_user.isLogin()
-        default_channel = PERSONAl_CHANNEL
+        # default_channel = PERSONAl_CHANNEL
+        default_channel = RED_HEARTED
       else
         default_channel = CHINESE_CHANNEL
+
       @history = new History()
       @channel = new Channel [], channel: default_channel
 
