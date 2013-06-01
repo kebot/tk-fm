@@ -52,15 +52,19 @@ define 'room', [
           # 'current_song is end', so skipped
           return
 
-        current_song.save(
-          _.extend(
-            {'begin': true, 'report_time': time.current()},
-            current_song.pick('position', 'sid'))
-          , {patch: true})
+        current_song.save (do ->
+          if current_song.get('report_time')
+            return {'begin': true}
+          else
+            return _.extend {
+              'begin': true
+              'report_time': time.current()
+            }, current_song.pick('position', 'sid')
+        ), {patch: true}
 
       # throttle version, it will called every 1000 times
       @listenTo current_song, 'finish', =>
-        if current_song.isEnd()
+        if current_song.get('finish')
           # you have reported that emmmm, i think so.
           return
 

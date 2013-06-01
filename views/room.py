@@ -59,7 +59,8 @@ class _RoomController(object):
         # actually skip the current_song
         # toggle to nextsong
         if not self.current_song.is_new():
-            self.current_song.save({'finsh_play_time': time.time() * 1000})
+            # self.current_song.save({'finsh_play_time': time.time() * 1000})
+            self.current_song.destroy()
 
         if self.song_list.length() > 0:
             logger.debug("room:{0}: nextsong".format(self.rid))
@@ -107,17 +108,22 @@ class _RoomController(object):
         pass
 
     def begin_playing(self, dev, msg):
-        try:
-            msg = _.pick(msg, 'sid', 'report_time', 'position')
-        except KeyError, e:
-            logger.info('msg passing did not have all key: %s', msg)
+        if not msg.get('sid'):
             return
 
-        dev.playing_status = self.s_playing
-        if not self.current_song.get('report_time'):
+        if msg.get('begin'):
+            dev.playing_status = self.s_playing
+        else:
+            return
+        if msg.has_key('report_time') and msg.has_key('position') \
+                and not self.current_song.get('report_time'):
+            try:
+                msg = _.pick(msg, 'sid', 'report_time', 'position')
+            except KeyError, e:
+                logger.info('msg passing did not have all key: %s', msg)
+                return
             self.current_song.save(msg)
             self.publish('current_song', msg)
-            pass
 
     def skip_song(self):
         return self.nextsong()
@@ -321,7 +327,7 @@ class RoomNamespace(BaseNamespace):
             return [True]
 
         if data.get('begin') == True:
-            logger.debug('c:begin: sid=%s', str(data))
+            logger.debug('c:begin: msg=%s', str(data))
             self.room.begin_playing(self, data)
             return [True]
 
