@@ -46,6 +46,11 @@ class _RoomController(object):
         self.ns_name = None
         logger.debug("Create global room: %s", rid)
 
+    def post_currentsong(self, *devs,**kwargs):
+        for dev in devs:
+            self.publish_one(dev, 'current_song',
+                    self.current_song.toJSON())
+
     def get_init_data(self, uid=None):
         return [dict(current_song=self.current_song.toJSON(uid=uid),
                 song_list=self.song_list.toJSON(uid=uid))]
@@ -173,6 +178,15 @@ class _RoomController(object):
         #print "<rid-%s with %i devices>" % (self.rid, len(self.device_ns) - 1)
         return self.device_ns.remove(dev)
 
+    def _build_pkg(self, event, *args):
+        return dict(type="event",
+                   name=event,
+                   args=args,
+                   endpoint=self.ns_name)
+    
+    def publish_one(self, dev, event, *args):
+        return dev.socket.send_packet(self._build_pkg(event, *args))
+
     def publish(self, event, *args, **options):
         """@todo: Docstring for post_message
         :event: event body
@@ -187,10 +201,7 @@ class _RoomController(object):
             else:
                 excepts = options.get('except')
 
-        pkt = dict(type="event",
-                   name=event,
-                   args=args,
-                   endpoint=self.ns_name)
+        pkt = self._build_pkg(event, *args)
 
         return [dev.socket.send_packet(pkt) for dev in self.device_ns
                 if dev not in excepts]
@@ -270,6 +281,7 @@ class RoomNamespace(BaseNamespace):
                 self.room.publish(channel, msg)
 
                 if self.room.current_song.is_new():
+                    print 'current_song is_new is true'
                     self.room.nextsong()
                 #logger.debug(song_list.toJSON())
                 return [True]
@@ -280,6 +292,9 @@ class RoomNamespace(BaseNamespace):
 
 
     def on_current_song(self, msg):
+        if not self.room:
+            # hey, you don't join any room! please join a room first!
+            return
 
         uid = uid_from_session(self.web_session)
 
@@ -290,8 +305,9 @@ class RoomNamespace(BaseNamespace):
 
         if sid != self.room.current_song.get('sid'):
             # hey man, current song of your message is outdated
-            # you will be notify for change song!
-            pass
+            # @TODO you will be notify for change song!
+            self.room.post_currentsong()
+            return [True]
 
         # currently, only post is supported
         if method != 'PATCH':
