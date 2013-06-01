@@ -48,7 +48,8 @@ define 'room', [
 
     startListening: ->
       @listenTo current_song, 'play', =>
-        if current_song.get('report_time')
+        if current_song.isEnd()
+          # 'current_song is end', so skipped
           return
 
         current_song.save(
@@ -59,7 +60,7 @@ define 'room', [
 
       # throttle version, it will called every 1000 times
       @listenTo current_song, 'finish', =>
-        if current_song.get('finish')
+        if current_song.isEnd()
           # you have reported that emmmm, i think so.
           return
 

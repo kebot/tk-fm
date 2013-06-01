@@ -22,6 +22,8 @@ define [
           @clear silent: true
         @set msg
 
+    isEnd: -> (not @id) or @get('finish') 
+
     serialize: ->
       attributes = @toJSON()
       if @get('position') > 0 and @get('length') > 0

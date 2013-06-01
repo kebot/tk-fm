@@ -103,7 +103,6 @@ define [
         onpause: => console.debug "Player: onpause"
         onresume: => console.debug "Player: onresume"#@model.trigger 'resume'
         ondataerror: => console.error 'data error'
-
         onfinish: => @model.trigger 'finish'
         onstop: => @model.trigger 'stop'
         whileplaying: =>
@@ -133,6 +132,10 @@ define [
             @model.trigger 'play'
 
         onsuspend: => console.log 'suspend!!!!!!!!!!!'
+
+      @model.on 'change:finish', ->
+        current_song.pause()
+
       current_song.play()
 
   new PlayerView model: model
