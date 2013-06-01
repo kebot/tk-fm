@@ -58,12 +58,16 @@ define 'room', [
           , {patch: true})
 
       # throttle version, it will called every 1000 times
-      @listenTo current_song, 'finish', _.throttle =>
+      @listenTo current_song, 'finish', =>
+        if current_song.get('finish')
+          # you have reported that emmmm, i think so.
+          return
+
         current_song.save({
           'finish': true,
           'sid': current_song.id
         }, {patch: true})
-      , 1000
+      #, 1000
 
       @listenTo current_song, 'change:like', =>
         current_song.save(
