@@ -2,30 +2,28 @@ define 'collections/channel', [
   'backbone', 'models/song', 'models/current_user', 'underscore'
 ],(Backbone,  Song,           current_user,         _)->
 
-  s = 'abcdefghijklmnopqrstuvwxyz'
-  #_groups = s + s.toUpperCase(s) + '0123456789'
-  _groups = s + '0123456789'
+  _groups = 'abcdefghijklmnopqrstuvwxyz' + '0123456789'
   randomString = (length)->
     output = ""
     while output.length < length
       output += _groups[_.random(0, _groups.length - 1)] 
     return output
 
-  ###
-  params:
-    type: s、p、e、b、n、u、r
-    s: skip
-    p: playing <when play list is empty>
-    e: end <when one song ends>
-    b: ban <when song is marked as trash>
-    n: request a new playlist
-    u: unrate, r: rate
-    sid: current_sid
-    channel: current_channle
-    r: a random key. which.length() == 10
-    kbps: 192, 128, 64
-    from: mainsite
-  ###
+  #params:
+    #type: s、p、e、b、n、u、r
+    #s: skip
+    #p: playing <when play list is empty>
+    #e: end <when one song ends>
+    #b: ban <when song is marked as trash>
+    #n: request a new playlist
+    #u: unrate, r: rate
+    #sid: current_sid
+    #channel: current_channle
+    #r: a random key. which.length() == 10
+    #kbps: 192, 128, 64
+    #from: mainsite
+    # 'http://douban.fm/j/mine/playlist?type=n&sid=1408536&pt=0.9&channel=-3&pb=64&from=mainsite&r=1ae3ba797f'
+
   class ChannelListCollection extends Backbone.Collection
     initialize: (models, options)->
       if options.channel
@@ -33,9 +31,8 @@ define 'collections/channel', [
 
     model: Song
 
-    url: ->
-      # 'http://douban.fm/j/mine/playlist?type=n&sid=1408536&pt=0.9&channel=-3&pb=64&from=mainsite&r=1ae3ba797f'
-      '/fm/mine/playlist?' + $.param({
+    url: (options={})->
+      return '/fm/mine/playlist?' + $.param(_.defaults(options, {
         'channel': @channel_id
         'type': 'n'
         # 'sid': ''
@@ -43,9 +40,21 @@ define 'collections/channel', [
         'pb': 64
         'from': 'mainsite'
         'r': randomString(10)
-      })
+      }))
+
     fetch: (options)->
-      super(options)
+      # available options
+      # type: [spebnur]
+      # sid: sid
+      # @biubiubiu
+      super _.extend(options, do =>
+        if _.every(_.each(['type', 'sid'], (k)=>
+          return _.has(options, k)
+        ))
+          return url: @url(_.pick(options, 'type', 'sid'))
+        else
+          return {}
+      )
 
     parse: (response)->
       if response.r == 0
