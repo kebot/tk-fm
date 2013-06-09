@@ -1,0 +1,6 @@
+if is_login
+  a(href="/account")
+    img.img-circle(alt=name, src=icon)
+    small.center #{name}
+else
+  a(href="/account/login") Login

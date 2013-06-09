@@ -1,0 +1,29 @@
+extends base
+block header_extra
+  link(href=url_for('static', filename='styles/app.css'))
+  link(href=url_for('static', filename='styles/responsive.css'))
+
+block script
+  script(src=url_for('static', filename='scripts/ozconfig.js'))
+  script(src=url_for('static', filename='scripts/main.js'))
+
+block main
+  div#app
+    div#nav.navbar.navbar-inverse.navbar-fixed-top
+      div.navbar-inner
+        div.container
+          button.btn.btn-navbar(type=button)
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          button.btn.btn-navbar.pull-right(type=button)
+            i.icon-plus.icon-white
+
+          div.nav-collapse.collapse
+            ul.nav
+              li.user-info loading...
+            li
+              a(href="/") Home
+
+  div.pages
+

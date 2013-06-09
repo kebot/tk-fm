@@ -1,10 +1,12 @@
 # this module wrap soundmanger whether in the iframe or 
 define 'soundmanager-wrap', [
   'finish'
-  'use'
   'jquery'
-  'templates/iframeplayer'
-], (finish, use, $, render_iframe)->
+  'views/player/template'
+], (finish, $, render_iframe)->
+  use = {}
+  use.iframe = true
+
   if use.iframe
     # http://www.ijusha.com/referer-anti-hotlinking/
     window.__iframe_html_string = render_iframe host: location.host

@@ -1,13 +1,13 @@
 define [
-  'models/io'
+  'backbone'
   'utils/time'
 ], (
-  IOModel
+  Backbone
   time
 )->
   # @TODO modify this to room-song idAttribute `id`: <roomid-sid>
 
-  class Song extends IOModel
+  class Song extends Backbone.Model
     idAttribute: 'sid'
     url: "/song/#{@id}"
     serialize: -> @toJSON()

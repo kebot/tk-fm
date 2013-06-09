@@ -1,0 +1,25 @@
+div.top-fixed
+  div.progress-container
+    div.progress-bar(style="width: #{precentage} ;")
+
+div.cover-bg(style="backgrount-image: url('#{picture}')")
+  div.info-header
+    #{title}
+    small #{artist} -{albumtitle}
+    span#playerposition.pull-right.info #{position} / #{length}
+
+  div#lyrics
+
+// actions begin
+div#actions.row-fluid
+  a#rate.span4
+  if like
+    i.icon.icon-heart-red
+  else
+    i.icon.icon-heart-black
+
+  a#ban.span4
+    i.icon.icon-trash
+
+  a#skip.span4(href=sid)
+

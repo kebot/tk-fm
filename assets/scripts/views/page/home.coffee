@@ -2,7 +2,7 @@
 define [
   'underscore'
   'backbone'
-  'templates/home'
+  'views/page/home_template'
   'models/current_song'
   'tweenMax'
   'moment'

@@ -1,10 +1,8 @@
 define [
-  'collections/io'
   'backbone'
   'utils/iosync'
   'utils/io'
 ], (
-  IOCollection
   Backbone
   iosync
   io
@@ -15,7 +13,9 @@ define [
     serialize: -> @toJSON()
     idAttribute: 'sid'
 
-  class Playlist extends IOCollection
+  class Playlist extends Backbone.Collection
+    sync: IOSync
+
     model: Song
     initialize: ->
       io.on 'songlist', (msg)=>

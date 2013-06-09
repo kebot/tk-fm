@@ -25,7 +25,7 @@ define [
       @collection = new Backbone.Collection()
 
       @listenTo current_user, 'change', ->
-        require ['templates/nav/user-info'], (render_template)->
+        require ['views/nav/template'], (render_template)->
           @$('#user-info').html(
             render_template(
               current_user.serialize()))

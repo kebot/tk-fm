@@ -142,12 +142,12 @@ require [
   $ ->
     require [
       'room'
-      'views/player'
+      'views/player/player'
     ], (room, Player)->
       room.joinroom('whatever')
 
     require [
-      'views/nav'
+      'views/nav/nav'
     ], (
       NavView
     )->

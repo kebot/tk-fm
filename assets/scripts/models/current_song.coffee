@@ -1,13 +1,30 @@
 define [
-  'models/io',
-  'utils/io'
+  'backbone',
   'underscore'
   'moment'
-], (IOModel, io, _)->
+  'utils/io'
+  'utils/iosync'
+], (
+  Backbone
+  _
+  moment
+  io
+  iosync
+)->
+  
   # buildin events for this model:
   #   finish: when the player finish playing this song
 
-  class CurrentSong extends IOModel
+  class CurrentSong extends Backbone.Model
+    sync: iosync
+
+    defaults:
+      sid: ""
+      picture: "http://img3.douban.com/pics/music/default_cover/lpic/music-default.gif"
+      artist: ""
+      albumtitle: ""
+      title: ""
+
     idAttribute: 'sid'
     url: -> 'current_song'
     # // attribudes not given
