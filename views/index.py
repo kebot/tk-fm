@@ -9,7 +9,7 @@ from yafa.redisdb import get_redis
 
 @app.route('/ui', methods=['GET'])
 def ui():
-    return render_template('ui.html')
+    return render_template('app.jade', youAreUsingJade=True, pageTitle="Jade is amazing")
 
 @app.route('/<path:url>', methods=['GET'])
 @app.route('/', methods=['GET'])
