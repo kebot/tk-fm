@@ -14,7 +14,7 @@ define [
     idAttribute: 'sid'
 
   class Playlist extends Backbone.Collection
-    sync: IOSync
+    sync: iosync
 
     model: Song
     initialize: ->
