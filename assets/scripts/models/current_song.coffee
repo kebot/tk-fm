@@ -44,9 +44,11 @@ define [
     serialize: ->
       attributes = @toJSON()
       if @get('position') > 0 and @get('length') > 0
-        attributes['precentage'] = "#{@get('position') / @get('length') * 100}%"
+        #attributes['precentage'] = "#{@get('position') / @get('length') * 100}%"
+        attributes['deg'] = @get('position') / @get('length') * 360
       else
-        attributes['precentage'] = "0%"
+        attributes['deg'] = 0
+        #attributes['precentage'] = "0%"
 
       for key in ['position', 'length']
         if _.isUndefined(attributes[key]) or _.isNull(attributes[key])

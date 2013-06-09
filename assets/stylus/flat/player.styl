@@ -1,0 +1,75 @@
+@import 'nib'
+// Progres
+
+// background
+color_bg = #ef6756
+
+// eg: button item color
+color_item = #c66b5a
+
+// eg: button bg
+color_item_bg = #285256
+
+// eg: font color
+color_front = #fff
+
+body
+  background-color: color_bg
+
+#page-home
+  position: relative
+
+// Progress
+.cover-container
+  position: absolute
+  size = 240px
+  progresswidth = 20px
+  coversize = size - 2 * progresswidth
+  base_zindex = 100
+
+  margin-left: (-1 * size / 2)
+  left: 50%
+  top: 40px
+
+  .progress
+    // variables
+    width: coversize
+    height: coversize
+    padding: progresswidth
+    position: relative
+
+    .bg
+      background-color: color_item_bg
+      z-index: base_zindex
+
+    .fg
+      background-color: color_item
+      z-index: base_zindex - 10
+
+    .bg, .fg
+      width: size
+      height: size
+      top: 0px
+      left: 0px
+
+    .bg.left .fg, .bg.right
+      clip: rect(0px,size,size,size/2)
+
+    .bg.right .fg, .bg.left
+      clip: rect(0, size/2, size, 0)
+
+    .bg, .cover-bg, .fg
+      border-radius: 50%
+      position: absolute
+
+    .cover-bg
+      height: coversize
+      width: coversize
+      background-size: coversize coversize
+      z-index: base_zindex + 10
+
+  .infos
+    color: color_front
+    // line-height: coversize
+    height: coversize
+

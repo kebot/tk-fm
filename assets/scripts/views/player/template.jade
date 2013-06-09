@@ -1,9 +1,14 @@
 !!!5
 html
   head
-    script(type="text/javascript") 
-      window._rock_host = "#{host}"
-    script(src="http://#{host}/static/components/ozjs/oz.js")
-    script(src="http://#{host}/static/scripts/ozconfig.js")
-    script(src="http://#{host}/static/scripts/iframe.js")
+    script(type="text/javascript")
+      window._rock_host = "#{host}";
+    script(src='http://#{host}/static/components/ozjs/oz.js')
+    script(src='http://#{host}/static/scripts/ozconfig.js')
+    //-script(src='http://l:5000/static/components/ozjs/oz.js')
+    //-script(src='http://l:5000/static/scripts/ozconfig.js')
+    script(type="text/javascript")
+      require(['soundmanager'], function(){
+        parent.onSoundManagerReady(soundManager);
+      });
 

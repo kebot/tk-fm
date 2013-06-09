@@ -82,11 +82,19 @@ define [
 
       @model.on 'change:position change:length', _.throttle =>
           attributes = @model.serialize()
-          TweenMax.to(@$el.find('div.progress-bar'), 
-            0.1, 
-            {
-              width: attributes.precentage
-            })
+
+          deg = attributes.deg
+
+          left_fg = @$el.find('.progress .left .fg')
+          right_fg = @$el.find('.progress .right .fg')
+
+          if deg > 180
+            TweenMax.to(right_fg, 0, {rotation: 180})
+            TweenMax.to(left_fg, 10, {rotation: deg - 180})
+          else
+            TweenMax.to(left_fg, 0, {rotation: 0})
+            TweenMax.to(right_fg, 10, {rotation: deg})
+
           @$el.find('#playerposition').text(
             "#{attributes.position} / #{attributes.length}")
         , 1000
