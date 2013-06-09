@@ -4,7 +4,6 @@ define [
   _
 )->
   # isArray, keys are defined in underscore
-  
 
   ###
   * Merge two attribute objects giving precedence
@@ -40,9 +39,10 @@ define [
   joinClasses = (val)->
     return if _.isArray val then _.compact(_.map(val, joinClasse)).join('  ') else val
 
+  # render the given attributes object.
   attrs: attrs = (obj, escaped)->
     buf = []
-
+    terse = obj.terse
     delete obj.terse
 
     keys = _.keys(obj)
@@ -50,20 +50,25 @@ define [
 
     if len
       buf.push('')
-      for key, val of buf
+      for key, val of obj
         if _.isBoolean(val) or _.isNull(val)
           if val
-            if terse then buf.push(key) else buf.push(key + "='" + kye + "'")
+            if terse
+              buf.push(key)
+            else
+              buf.push(key + '="' + key + '"')
         else if 0 == key.indexOf('data') && _.isString val
           buf.push("#{key}='#{JSON.stringify(val)}'")
         else if key == 'class'
           if val = _.escape(joinClasses(val))
             buf.push(key + '="' + val + '"')
-        else if (escaped && escaped[key])
-          buf.push(key + '="' + _.escape(val) + '"')
+        else if escaped && escaped[key]
+          buf.push key + '="' + _.escape(val) + '"'
         else
           buf.push(key + '="' + val + '"')
-    return buf.join('  ')
+
+    return buf.join(' ')
+
   escape: _.escape
   rethrow: (err, filename, lineno)-> throw err
 
