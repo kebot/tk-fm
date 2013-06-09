@@ -33,20 +33,21 @@ bowerDefine 'backbone', ['jquery', 'underscore'], 'backbone.js', -> window.Backb
 bowerDefine 'handlebars', 'handlebars.runtime.js', -> window.Handlebars
 bowerDefine 'nunjucks', 'browser/nunjucks.js', -> window.nunjucks
 bowerDefine 'soundmanager', 'script/soundmanager2.js', -> window.soundManager
+define 'jade', 'utils/jade-runtime.js'
 
 #bowerDefine 'gsap-timelinelite', 'src/uncompressed/TimeLineLite.js'
 #bowerDefine 'gsap-timelinemax', 'src/uncompressed/TimeLineMax.js'
 #bowerDefine 'gsap-tweenlite', 'src/uncompressed/TweenLite.js'
 #bowerDefine 'gsap-tweenmax', 'src/uncompressed/TweenMax.js'
 bowerDefine 'tweenMax', 'src/uncompressed/TweenMax.js', -> window.TweenMax
-# plugins available: cssplugin, cssruleplugin, scrolltoplugin, etc...
+#plugins available: cssplugin, cssruleplugin, scrolltoplugin, etc...
 
-bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
-bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager
+#bowerDefine 'iobind', 'dist/backbone.iobind.js', -> window.soundManager
+#bowerDefine 'iosync', 'dist/backbone.iosync.js', -> window.soundManager
 
 # redirect libs
-define 'utils/io-init', 'utils/io.js'
+# define 'utils/io-init', 'utils/io.js'
 #define 'soundmanager-ready', 'views/player.js'
-define 'use', 'utils/use.js'
+# define 'use', 'utils/use.js'
 # // finish define libs
 
